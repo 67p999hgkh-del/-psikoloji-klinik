@@ -46,7 +46,7 @@ from helpers import (
     parse_time_slot,
     tags_to_slug,
 )
-from models import Appointment, BlogPost, Invoice, PsychologicalTest, SiteSettings, Slider, Therapist, User, VisitorHit, Widget, db
+from models import Appointment, BlogPost, PsychologicalTest, SiteSettings, Slider, Therapist, User, VisitorHit, Widget, db
 from site_content import (
     COUNTRY_FLAG,
     LANG_FLAGS,
@@ -57,25 +57,10 @@ from site_content import (
     get_therapist_tip,
 )
 from test_data import TESTIMONIALS, seed_psychological_tests, upgrade_psychological_tests
-from tests_public import (
-    build_tests_page_cards,
-    featured_test_cards,
-    get_tests_page_filters,
-    tests_page_faq,
-    tests_process_steps,
-    tests_ethics_points,
-)
 from test_matching import get_recommended_therapists
 from tests_engine import score_test
 from uploads import save_person_photo
-from psikoplan import SPECIALTY_FILTERS, appointment_chart_stats, build_executive_dashboard, ensure_client_invite, log_audit, PAYMENT_LABELS
-from appointment_ops import (
-    apply_appointment_filters,
-    build_appointment_context,
-    count_advanced_filters,
-    detect_date_preset,
-    filter_appointments_by_kpi,
-)
+from psikoplan import SPECIALTY_FILTERS, appointment_chart_stats, ensure_client_invite, log_audit
 from routes_extra import register_extra_routes
 from models import ClientProfile, SessionRecord, TestResult
 import json as json_lib
@@ -91,70 +76,6 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", _default_
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 86400
 STATIC_VERSION = "20260807q"
-
-DEMO_CLIENTS = [
-    ("Ahmet Yılmaz", "ahmet.yilmaz@ornek.com"),
-    ("Elif Kaya", "elif.kaya@ornek.com"),
-    ("Mert Demir", "mert.demir@ornek.com"),
-    ("Zeynep Aydın", "zeynep.aydin@ornek.com"),
-    ("Burak Çelik", "burak.celik@ornek.com"),
-    ("Selin Yıldız", "selin.yildiz@ornek.com"),
-    ("Emre Şahin", "emre.sahin@ornek.com"),
-    ("Gamze Özkan", "gamze.ozkan@ornek.com"),
-]
-
-HERO_SLIDE_IMAGES = (
-    "/static/images/hero-slide-1-therapy.webp",
-    "/static/images/hero-slide-2-clinic.webp",
-    "/static/images/hero-slide-3-family.webp",
-)
-HOME_SEARCH_IMAGE = "/static/images/home-search-appointment.webp"
-CLIENT_REGISTER_IMAGE = "/static/images/client-register-hero.png"
-HOME_WHY_IMAGE = "/static/images/home-why-psikohukuk.webp"
-HERO_THERAPY_IMAGE = HERO_SLIDE_IMAGES[0]
-BAD_HERO_IMAGES = (
-    "photo-1573497019940-1c28c88b4f3e",
-    "photo-1589829545856-d10d557cf95f",
-    "photo-1779838386666-6d110f33079b",
-    "photo-1551836022-d5d88e9218df",
-)
-BAD_HERO_DENTAL_IMAGE = BAD_HERO_IMAGES[0]
-
-HERO_SLIDES = [
-    {
-        "sort_order": 1,
-        "title": "PsikoHukuk Danışmanlık Merkezi",
-        "subtitle": "Bilimsel temelli psikolojik destek ve güvenilir terapi hizmetleri.",
-        "image_url": HERO_SLIDE_IMAGES[0],
-        "alt_text": "Modern terapi odasında psikolog ve danışan görüşmesi",
-        "button_text": "Randevu Al",
-        "button_link": "/randevu",
-        "cta_secondary_text": "Online Görüşme",
-        "cta_secondary_link": "/randevu?session_type=online",
-    },
-    {
-        "sort_order": 2,
-        "title": "Güvenli ve Gizli Terapi Ortamı",
-        "subtitle": "KVKK ve etik ilkelere uygun danışmanlık süreci.",
-        "image_url": HERO_SLIDE_IMAGES[1],
-        "alt_text": "Modern psikoloji kliniği terapi odası iç mekânı",
-        "button_text": "Randevu Al",
-        "button_link": "/randevu",
-        "cta_secondary_text": "Online Görüşme",
-        "cta_secondary_link": "/randevu?session_type=online",
-    },
-    {
-        "sort_order": 3,
-        "title": "Her Yaşa Uygun Uzman Desteği",
-        "subtitle": "Çocuk, ergen, yetişkin, çift ve aile terapileri.",
-        "image_url": HERO_SLIDE_IMAGES[2],
-        "alt_text": "Aile ve çocuk terapisi görüşme ortamı",
-        "button_text": "Uzmanlarımız",
-        "button_link": "/terapistler",
-        "cta_secondary_text": "Randevu Al",
-        "cta_secondary_link": "/randevu",
-    },
-]
 
 db.init_app(app)
 
@@ -229,14 +150,6 @@ def before_request_track_visit():
     track_page_visit()
 
 
-@app.after_request
-def admin_no_cache(response):
-    if request.path.startswith("/admin"):
-        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-        response.headers["Pragma"] = "no-cache"
-    return response
-
-
 def get_lang():
     lang = session.get("lang", "tr")
     return lang if lang in dict(SUPPORTED_LANGUAGES) else "tr"
@@ -271,139 +184,6 @@ BLOG_FEATURED_IMAGES = {
     "panik-atakla-basa-cikma-rehberi": "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&h=450&fit=crop",
     "is-yerinde-mobbing-ve-psikolojik-destek": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=450&fit=crop",
 }
-
-
-def cleanup_orphan_blog_drafts():
-    """Remove ghost drafts recreated from legacy slugs after content migration."""
-    from blog_content import PROFESSIONAL_BLOG_POSTS, SLUG_REDIRECTS
-
-    catalog_slugs = {item["slug"] for item in PROFESSIONAL_BLOG_POSTS}
-    legacy_slugs = set(SLUG_REDIRECTS.keys())
-    changed = False
-    for post in BlogPost.query.all():
-        if post.slug in catalog_slugs:
-            continue
-        if post.slug in legacy_slugs or (
-            not post.is_published and post.slug in set(SLUG_REDIRECTS.values())
-        ):
-            db.session.delete(post)
-            changed = True
-    return changed
-
-
-def ensure_blog_restore_bosanma():
-    """Ensure 9th post — Boşanma Sürecinde Duygusal Destek — exists with full CMS fields."""
-    slug = "bosanma-surecinde-duygusal-destek"
-    from blog_content import BLOG_FEATURED_IMAGES
-
-    cover_alt = "Boşanma sürecinde duygusal destek alan danışan, sakin klinik ortamında görüşme temalı görsel"
-    featured = BLOG_FEATURED_IMAGES.get(
-        "cift-terapisinde-saglikli-iletisim",
-        "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1200&h=675&fit=crop&q=80",
-    )
-    data = {
-        "title": "Boşanma Sürecinde Duygusal Destek",
-        "slug": slug,
-        "excerpt": (
-            "Boşanma sürecinde yas, öfke ve belirsizlik duygularını yönetmek için "
-            "pratik öneriler. Yoğun belirtilerde profesyonel psikolojik destek önerilir."
-        ),
-        "content": (
-            "<h2 id=\"bosanma-surecinde-duygusal-deneyimler\">Boşanma Sürecinde Duygusal Deneyimler</h2>"
-            "<p>Boşanma yalnızca hukuki bir süreç değil; duygusal açıdan da zorlayıcı bir dönüşüm dönemidir. "
-            "Yas, öfke, suçluluk, rahatlama ve belirsizlik duyguları aynı gün içinde birbirini takip edebilir.</p>"
-            "<h2 id=\"pratik-basa-cikma-adimlari\">Pratik Başa Çıkma Adımları</h2>"
-            "<p>Günlük rutininizi korumak, güvendiğiniz biriyle duygularınızı paylaşmak ve kendinize "
-            "karşı yargılayıcı olmamak süreci hafifletebilir.</p>"
-            "<h2 id=\"ne-zaman-profesyonel-destek-alinmali\">Ne Zaman Profesyonel Destek Alınmalı?</h2>"
-            "<p>Uyku ve iştah düzeniniz belirgin şekilde bozulduysa bireysel terapi desteği faydalı olabilir. "
-            "<a href=\"/blog/cift-terapisinde-saglikli-iletisim\">Çift iletişimi</a> ve "
-            "<a href=\"/blog/online-terapi-nedir\">online terapi</a> seçeneklerine göz atabilirsiniz.</p>"
-            "<h2 id=\"sonuc\">Sonuç</h2>"
-            "<p>Boşanma sürecinde duygusal destek almak bir zayıflık değil, kendinize karşı sorumlu bir adımdır.</p>"
-        ),
-        "author": "Dr. Ayşe Yılmaz",
-        "category": "Çift Terapisi",
-        "tags": "#bosanma #aile #duygusaldestek #terapi #psikoloji",
-        "seo_title": "Boşanma Sürecinde Duygusal Destek | PsikoHukuk",
-        "seo_description": (
-            "Boşanma sürecinde duygusal denge ve yas yönetimi rehberi. Yoğun belirtilerde PsikoHukuk "
-            "uzman psikolojik desteği; profesyonel değerlendirme önerilir."
-        ),
-        "seo_keywords": "#bosanma #duygusaldestek #aile #terapi",
-        "featured_image": featured,
-        "cover_alt": cover_alt,
-        "read_time_minutes": 5,
-        "related_slugs": ["cift-terapisinde-saglikli-iletisim", "online-terapi-nedir", "iliskilerde-tekrarlayan-tartismalar"],
-        "primary_keyword": "boşanma sürecinde duygusal destek",
-        "secondary_keywords": ["boşanma psikolojisi", "yas süreci", "aile danışmanlığı"],
-        "og_title": "Boşanma Sürecinde Duygusal Destek | PsikoHukuk",
-        "og_description": "Boşanma sürecinde duygusal denge ve profesyonel destek rehberi.",
-    }
-
-    post = BlogPost.query.filter_by(slug=slug).first()
-    changed = False
-    if not post:
-        post = BlogPost()
-        db.session.add(post)
-        changed = True
-
-    from blog_content import apply_post_data
-    apply_post_data(post, data)
-    post.is_published = True
-    post.updated_at = datetime.utcnow()
-    return True
-
-
-def ensure_blog_professional_content():
-    """Upgrade blog posts to professional clinic-standard content."""
-    from blog_content import PROFESSIONAL_BLOG_POSTS, apply_post_data, BLOG_FEATURED_IMAGES
-    from blog_extra_posts import BLOG_EXTRA_FEATURED_IMAGES, EXTRA_BLOG_POSTS
-
-    all_catalog = PROFESSIONAL_BLOG_POSTS + EXTRA_BLOG_POSTS
-    all_images = {**BLOG_FEATURED_IMAGES, **BLOG_EXTRA_FEATURED_IMAGES}
-    changed = False
-    catalog_slugs = {item["slug"] for item in all_catalog}
-    used_ids = set()
-
-    for data in all_catalog:
-        post = None
-        for legacy in [data["slug"], *(data.get("legacy_slugs") or [])]:
-            post = BlogPost.query.filter_by(slug=legacy).first()
-            if post:
-                break
-        if not post:
-            post = BlogPost()
-            db.session.add(post)
-            changed = True
-        apply_post_data(post, data)
-        post.is_published = True
-        post.updated_at = datetime.utcnow()
-        used_ids.add(post.id)
-        changed = True
-
-    for post in BlogPost.query.all():
-        if post.id in used_ids:
-            image = BLOG_FEATURED_IMAGES.get(post.slug)
-            if image and post.featured_image != image:
-                post.featured_image = image
-                changed = True
-            continue
-        # Keep restored legacy posts (e.g. bosanma) — only unpublish obsolete duplicates
-        if post.slug not in catalog_slugs and post.is_published:
-            legacy_slugs = {
-                slug
-                for data in PROFESSIONAL_BLOG_POSTS
-                for slug in (data.get("legacy_slugs") or [])
-            }
-            if post.slug in legacy_slugs:
-                continue
-            post.is_published = False
-            changed = True
-
-    if cleanup_orphan_blog_drafts():
-        changed = True
-    return changed
 
 
 def ensure_blog_featured_images():
@@ -534,11 +314,6 @@ def build_extra_blog_posts():
 
 
 def ensure_extra_blog_posts():
-    """Legacy seed — disabled after professional content migration."""
-    from blog_content import PROFESSIONAL_BLOG_POSTS
-
-    if PROFESSIONAL_BLOG_POSTS:
-        return False
     changed = False
     for index, data in enumerate(EXTRA_BLOG_POST_DATA):
         if BlogPost.query.filter_by(slug=data["slug"]).first():
@@ -575,14 +350,12 @@ def normalize_session_type(value):
     return session_type
 
 
-def filter_therapists(city=None, q=None, session_type=None, specialties=None, service_lang=None):
+def filter_therapists(city=None, q=None, session_type=None, specialties=None):
     query = Therapist.query.filter_by(is_active=True)
     if session_type == "online":
         query = query.filter_by(supports_online=True)
     elif city:
         query = query.filter_by(city=city)
-    if service_lang:
-        query = query.filter(Therapist.languages_spoken.ilike(f"%{service_lang.strip()}%"))
     if q:
         term = f"%{q.strip()}%"
         query = query.filter(
@@ -788,27 +561,27 @@ def seed_database():
 
     slides = [
         Slider(
-            title=HERO_SLIDES[0]["title"],
-            subtitle=HERO_SLIDES[0]["subtitle"],
-            image_url=HERO_SLIDES[0]["image_url"],
-            button_text=HERO_SLIDES[0]["button_text"],
-            button_link=HERO_SLIDES[0]["button_link"],
+            title="PsikoHukuk Danışmanlık Merkezi",
+            subtitle="Ruh sağlığınız için profesyonel psikolojik destek.",
+            image_url="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=1200&h=340&fit=crop",
+            button_text="Randevu Al",
+            button_link="/randevu",
             sort_order=1,
         ),
         Slider(
-            title=HERO_SLIDES[1]["title"],
-            subtitle=HERO_SLIDES[1]["subtitle"],
-            image_url=HERO_SLIDES[1]["image_url"],
-            button_text=HERO_SLIDES[1]["button_text"],
-            button_link=HERO_SLIDES[1]["button_link"],
+            title="Uzman Kadro, Güvenilir Hizmet",
+            subtitle="Deneyimli psikologlarımızla yanınızdayız.",
+            image_url="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1200&h=340&fit=crop",
+            button_text="Ekibimiz",
+            button_link="/terapistler",
             sort_order=2,
         ),
         Slider(
-            title=HERO_SLIDES[2]["title"],
-            subtitle=HERO_SLIDES[2]["subtitle"],
-            image_url=HERO_SLIDES[2]["image_url"],
-            button_text=HERO_SLIDES[2]["button_text"],
-            button_link=HERO_SLIDES[2]["button_link"],
+            title="Huzurlu Bir Başlangıç",
+            subtitle="Ruh sağlığınız için güvenli ve sakin bir ortamda destek alın.",
+            image_url="https://images.unsplash.com/photo-1779838386666-6d110f33079b?w=1200&h=340&fit=crop",
+            button_text="Randevu Al",
+            button_link="/randevu",
             sort_order=3,
         ),
     ]
@@ -837,10 +610,12 @@ def seed_database():
             title="Rakamlarla Biz",
             content=json.dumps(
                 {
-                    "verified_metrics": {
-                        "show_sessions": False,
-                        "show_satisfaction": False,
-                    }
+                    "items": [
+                        {"value": "15+", "label": "Uzman Psikolog", "color": "blue"},
+                        {"value": "3000+", "label": "Randevu", "color": "purple"},
+                        {"value": "20", "label": "Şehir", "color": "green"},
+                        {"value": "4.9/5", "label": "Memnuniyet", "color": "orange"},
+                    ]
                 },
                 ensure_ascii=False,
             ),
@@ -893,78 +668,36 @@ def seed_database():
     db.session.commit()
 
 
-def _hero_slide_cms(spec):
-    return {
-        "text": {
-            "title": spec["title"],
-            "subtitle": spec["subtitle"],
-            "cta_primary_text": spec["button_text"],
-            "cta_primary_link": spec["button_link"],
-            "cta_secondary_text": spec.get("cta_secondary_text", ""),
-            "cta_secondary_link": spec.get("cta_secondary_link", ""),
-        },
-        "media": {
-            "desktop_image": spec["image_url"],
-            "mobile_image": spec["image_url"],
-            "alt_text": spec.get("alt_text", spec["title"]),
-        },
-    }
-
-
-def upgrade_hero_slides():
-    """Ana sayfa hero slider — premium psikoloji görselleri ve metinleri."""
-    changed = False
-    active_ids = set()
-
-    for spec in HERO_SLIDES:
-        slide = Slider.query.filter_by(sort_order=spec["sort_order"], is_active=True).first()
-        if not slide:
-            slide = Slider.query.filter_by(sort_order=spec["sort_order"]).first()
-        if not slide:
-            slide = Slider(sort_order=spec["sort_order"], is_active=True)
-            db.session.add(slide)
-            changed = True
-
-        slide.title = spec["title"]
-        slide.subtitle = spec["subtitle"]
-        slide.image_url = spec["image_url"]
-        slide.button_text = spec["button_text"]
-        slide.button_link = spec["button_link"]
-        slide.is_active = True
-        slide.set_cms_dict(_hero_slide_cms(spec))
-        active_ids.add(slide.id)
-        changed = True
-
-    for slide in Slider.query.all():
-        img = f"{slide.image_url or ''} {(slide.cms_dict().get('media') or {}).get('desktop_image') or ''}"
-        if slide.id not in active_ids and (
-            any(bad in img for bad in BAD_HERO_IMAGES)
-            or slide.title in ("Uzman Kadro, Güvenilir Hizmet", "Huzurlu Bir Başlangıç", "Yeni İçerik")
-        ):
-            slide.is_active = False
-            changed = True
-
-    return changed
-
-
 def ensure_upgrade_data():
     changed = False
 
     if Slider.query.count() == 0:
-        for spec in HERO_SLIDES:
-            slide = Slider(
-                title=spec["title"],
-                subtitle=spec["subtitle"],
-                image_url=spec["image_url"],
-                button_text=spec["button_text"],
-                button_link=spec["button_link"],
-                sort_order=spec["sort_order"],
-                is_active=True,
-            )
-            slide.set_cms_dict(_hero_slide_cms(spec))
-            db.session.add(slide)
-        changed = True
-    elif upgrade_hero_slides():
+        db.session.add_all([
+            Slider(
+                title="PsikoHukuk Danışmanlık Merkezi",
+                subtitle="Ruh sağlığınız için profesyonel psikolojik destek.",
+                image_url="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=1200&h=340&fit=crop",
+                button_text="Randevu Al",
+                button_link="/randevu",
+                sort_order=1,
+            ),
+            Slider(
+                title="Uzman Kadro, Güvenilir Hizmet",
+                subtitle="Deneyimli psikologlarımızla yanınızdayız.",
+                image_url="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1200&h=340&fit=crop",
+                button_text="Ekibimiz",
+                button_link="/terapistler",
+                sort_order=2,
+            ),
+            Slider(
+                title="Huzurlu Bir Başlangıç",
+                subtitle="Ruh sağlığınız için güvenli ve sakin bir ortamda destek alın.",
+                image_url="https://images.unsplash.com/photo-1779838386666-6d110f33079b?w=1200&h=340&fit=crop",
+                button_text="Randevu Al",
+                button_link="/randevu",
+                sort_order=3,
+            ),
+        ])
         changed = True
 
     if not Widget.query.filter_by(widget_type="social").first():
@@ -995,59 +728,41 @@ def ensure_upgrade_data():
     stats_widget = Widget.query.filter_by(widget_type="stats").first()
     stats_content = json.dumps(
         {
-            "verified_metrics": {
-                "show_sessions": False,
-                "show_satisfaction": False,
-            }
+            "items": [
+                {"value": "15+", "label": "Uzman Psikolog", "color": "blue"},
+                {"value": "3000+", "label": "Randevu", "color": "purple"},
+                {"value": "20", "label": "Şehir", "color": "green"},
+                {"value": "4.9/5", "label": "Memnuniyet", "color": "orange"},
+            ]
         },
         ensure_ascii=False,
     )
-    if stats_widget:
-        try:
-            current = json.loads(stats_widget.content or "{}")
-        except json.JSONDecodeError:
-            current = {}
-        if current.get("items") or current != json.loads(stats_content):
-            stats_widget.content = stats_content
-            changed = True
-
-    dup_titles = {}
-    for post in BlogPost.query.filter_by(is_published=True).order_by(BlogPost.created_at.desc()).all():
-        key = (post.title or "").strip().casefold()
-        if not key:
-            continue
-        if key in dup_titles:
-            post.is_published = False
-            changed = True
-        else:
-            dup_titles[key] = post.id
+    if stats_widget and stats_widget.content != stats_content:
+        stats_widget.content = stats_content
+        changed = True
 
     faq_content = json.dumps(
         {
             "items": [
                 {
-                    "q": "İlk görüşme nasıl gerçekleşir?",
-                    "a": "İlk seans tanışma ve ihtiyaç analizi odaklıdır. Uzmanınız sizi dinler, beklentilerinizi anlar ve size uygun bir destek planı önerir. Seans yaklaşık 50 dakika sürer; online veya yüz yüze tercih edebilirsiniz.",
+                    "q": "PsikoHukuk nedir ve nasıl randevu alabilirim?",
+                    "a": "PsikoHukuk, psikolog ve psikiyatrist randevusu alabileceğiniz bir platformdur. Terapistler sayfasından uzman seçin veya randevu sayfasından şehir ve uzmanlık alanına göre arama yapın.",
                 },
                 {
-                    "q": "Online terapi güvenli midir?",
-                    "a": "Evet. Online görüşmeler güvenli video altyapısı üzerinden yapılır. Görüşmeler gizlilik ilkeleri kapsamında yürütülür ve yalnızca lisanslı uzmanlarımızla gerçekleştirilir.",
+                    "q": "Platforma nasıl üye olabilirim?",
+                    "a": "Randevu oluşturmak için ad, e-posta ve telefon bilgilerinizi girmeniz yeterlidir. İlerleyen dönemde profil oluşturma özelliği eklenecektir.",
                 },
                 {
-                    "q": "Bana uygun uzmanı nasıl seçebilirim?",
-                    "a": "Uzmanlık alanı, şehir, görüşme türü ve dil filtrelerini kullanarak arama yapabilirsiniz. Uzman profillerinde deneyim, çalışma alanları ve seans tercihlerini inceleyerek size en uygun kişiyi seçebilirsiniz.",
+                    "q": "Profilimi nasıl oluşturabilirim?",
+                    "a": "Terapist profillerini inceleyerek uzmanlık alanları, çalışma saatleri ve iletişim bilgilerine ulaşabilirsiniz. Randevu almak için profil sayfasındaki takvimi kullanın.",
                 },
                 {
-                    "q": "Görüşmeler gizli tutuluyor mu?",
-                    "a": "Evet. Tüm görüşmeler mesleki gizlilik ve etik kurallar çerçevesinde yürütülür. Paylaştığınız bilgiler yalnızca tedavi süreciniz kapsamında değerlendirilir; üçüncü kişilerle paylaşılmaz.",
+                    "q": "Platformu kullanmak ücretli mi?",
+                    "a": "Platform üzerinden randevu oluşturmak ücretsizdir. Seans ücretleri terapistinize göre değişir; detaylar profil sayfasında yer alır.",
                 },
                 {
-                    "q": "Randevumu değiştirebilir veya iptal edebilir miyim?",
-                    "a": "Evet. Randevunuzu seans saatinden önce değiştirebilir veya iptal edebilirsiniz. Detaylı bilgi için uzman profilinizdeki takvimi kullanabilir veya destek ekibimizle iletişime geçebilirsiniz.",
-                },
-                {
-                    "q": "Psikolojik testler tanı koyar mı?",
-                    "a": "Hayır. Platformumuzdaki testler bilimsel envanterlerden esinlenen ön değerlendirme araçlarıdır; tek başına tanı koymaz. Sonuçlar farkındalık kazandırır; gerektiğinde uzman desteği almanızı öneririz.",
+                    "q": "Danışanlar nasıl randevu alabilir?",
+                    "a": "Terapist seçin, takvimden müsait gün ve saati belirleyin, bilgilerinizi girin ve randevunuzu oluşturun. Online veya yüz yüze seans seçeneğini tercih edebilirsiniz.",
                 },
             ]
         },
@@ -1061,6 +776,21 @@ def ensure_upgrade_data():
         if faq_widget.title != "Sık Sorulan Sorular":
             faq_widget.title = "Sık Sorulan Sorular"
             changed = True
+
+    ocean_slide_url = "https://images.unsplash.com/photo-1779838386666-6d110f33079b?w=1200&h=340&fit=crop"
+    if not Slider.query.filter_by(image_url=ocean_slide_url).first():
+        db.session.add(
+            Slider(
+                title="Huzurlu Bir Başlangıç",
+                subtitle="Ruh sağlığınız için güvenli ve sakin bir ortamda destek alın.",
+                image_url=ocean_slide_url,
+                button_text="Randevu Al",
+                button_link="/randevu",
+                sort_order=3,
+                is_active=True,
+            )
+        )
+        changed = True
 
     settings = SiteSettings.get()
     if settings.logo_icon == "⚖️":
@@ -1086,54 +816,16 @@ def ensure_upgrade_data():
             changed = True
 
     testimonials_widget = Widget.query.filter_by(widget_type="testimonials").first()
-    home_testimonials_seed = {
-        "items": [
-            {
-                "text": "Online seanslar sayesinde kaygılarımı yönetmeyi öğrendim. Süreç boyunca kendimi güvende hissettim.",
-                "author": "Elif K.",
-                "city": "İstanbul",
-                "service": "Kaygı",
-            },
-            {
-                "text": "Profesyonel ve güvenilir bir ekip. Randevu süreci çok kolaydı, kesinlikle tavsiye ederim.",
-                "author": "Murat S.",
-                "city": "Ankara",
-                "service": "Bireysel Terapi",
-            },
-            {
-                "text": "Çift terapisi sayesinde iletişimimizi yeniden kurduk. Sabırlı ve yönlendirici bir destek aldık.",
-                "author": "Ayşe & Can T.",
-                "city": "İzmir",
-                "service": "Çift Terapisi",
-            },
-            {
-                "text": "Depresyon sürecimde yanımda oldular. İlerlememi adım adım takip etmek motivasyonumu artırdı.",
-                "author": "Zeynep A.",
-                "city": "Bursa",
-                "service": "Depresyon",
-            },
-            {
-                "text": "Çocuğumuz için aldığımız destek aile dinamiğimizi güçlendirdi. Uzman yaklaşımı çok değerliydi.",
-                "author": "Deniz Y.",
-                "city": "Antalya",
-                "service": "Çocuk-Ergen",
-            },
-            {
-                "text": "İş stresi ve tükenmişlikle başa çıkmamda büyük fark yarattı. Pratik öneriler hemen işe yaradı.",
-                "author": "Burak Y.",
-                "city": "İstanbul",
-                "service": "İş Stresi",
-            },
-        ],
-        "autoplay": True,
-    }
-    if testimonials_widget:
-        current = testimonials_widget.parsed_content()
-        if len(current.get("items") or []) < 3 or not (current.get("items") or [{}])[0].get("city"):
-            testimonials_widget.content = json.dumps(home_testimonials_seed, ensure_ascii=False)
-            changed = True
     if testimonials_widget and testimonials_widget.content and "hukuki" in testimonials_widget.content.lower():
-        testimonials_widget.content = json.dumps(home_testimonials_seed, ensure_ascii=False)
+        testimonials_widget.content = json.dumps(
+            {
+                "items": [
+                    {"text": "Profesyonel psikolojik destek almak hayatımı kolaylaştırdı.", "author": "M.T."},
+                    {"text": "Profesyonel ve güvenilir bir ekip. Kesinlikle tavsiye ederim.", "author": "S.K."},
+                ]
+            },
+            ensure_ascii=False,
+        )
         changed = True
 
     for post in BlogPost.query.filter(BlogPost.category == "Hukuk").all():
@@ -1199,26 +891,6 @@ def ensure_upgrade_data():
         if therapist and therapist.specialties != specs:
             therapist.specialties = specs
             changed = True
-    seed_photos = {
-        "ayse-yilmaz": "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=480&h=360&fit=crop&crop=faces",
-        "mehmet-kaya": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=480&h=360&fit=crop&crop=faces",
-        "zeynep-demir": "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=480&h=360&fit=crop&crop=faces",
-    }
-    legacy_doctor_photos = (
-        "1612349317150-e413f6a5b16d",
-        "photo-1612349317150",
-    )
-    for slug, photo_url in seed_photos.items():
-        therapist = Therapist.query.filter_by(slug=slug).first()
-        if not therapist:
-            continue
-        current = therapist.photo or ""
-        if (
-            current in (None, "", "default.jpg")
-            or any(token in current for token in legacy_doctor_photos)
-        ):
-            therapist.photo = photo_url
-            changed = True
     for test in PsychologicalTest.query.all():
         if not test.available_langs:
             test.available_langs = "tr,en,de"
@@ -1229,31 +901,8 @@ def ensure_upgrade_data():
             changed = True
     if ensure_extra_blog_posts():
         changed = True
-    if ensure_blog_professional_content():
+    if ensure_blog_featured_images():
         changed = True
-    if ensure_blog_restore_bosanma():
-        changed = True
-    elif ensure_blog_featured_images():
-        changed = True
-
-    for index, (new_name, new_email) in enumerate(DEMO_CLIENTS, start=1):
-        old_name = f"Demo Danışan {index}"
-        old_email = f"demo{index}@ornek.com"
-        for model in (SessionRecord, Appointment, Invoice, TestResult):
-            rows = model.query.filter(
-                db.or_(model.patient_name == old_name, model.patient_email == old_email)
-            ).all()
-            for row in rows:
-                row.patient_name = new_name
-                row.patient_email = new_email
-                changed = True
-
-    for model in (SessionRecord, Appointment, Invoice, TestResult):
-        for row in model.query.filter_by(patient_name="Test Test").all():
-            row.patient_name = "Deniz Koç"
-            if not row.patient_email or row.patient_email.endswith("@test.com"):
-                row.patient_email = "deniz.koc@ornek.com"
-            changed = True
 
     if SessionRecord.query.count() == 0:
         therapists = Therapist.query.filter_by(is_active=True).order_by(Therapist.id).all()
@@ -1270,12 +919,11 @@ def ensure_upgrade_data():
         if therapists:
             for index, (reasons, city, status, risk, s_type, duration, next_in) in enumerate(demo):
                 t = therapists[index % len(therapists)]
-                client_name, client_email = DEMO_CLIENTS[index % len(DEMO_CLIENTS)]
                 db.session.add(
                     SessionRecord(
                         therapist_id=t.id,
-                        patient_name=client_name,
-                        patient_email=client_email,
+                        patient_name=f"Demo Danışan {index + 1}",
+                        patient_email=f"demo{index + 1}@ornek.com",
                         city=city or t.city,
                         reasons=json_lib.dumps(reasons, ensure_ascii=False),
                         note="Örnek seans kaydı",
@@ -1328,13 +976,13 @@ def inject_globals():
     def can(permission):
         if not user:
             return False
-        from auth import role_has_permission
+        from auth import user_can_access
 
-        return role_has_permission(user.role, permission)
+        return user_can_access(user, permission, settings.subscription_plan)
 
-    from contact_public import get_public_contact_info
+    from subscription_plans import format_try, get_active_plan
 
-    public_contact = get_public_contact_info(lang)
+    active_plan = get_active_plan(settings)
 
     return {
         "site_name": settings.site_name or SITE_NAME,
@@ -1350,15 +998,13 @@ def inject_globals():
         "tr": lambda key, **kwargs: translate(key, lang, **kwargs),
         "current_user": user,
         "can": can,
+        "active_plan": active_plan,
+        "format_try": format_try,
+        "static_v": STATIC_VERSION,
         "role_labels": ROLE_LABELS,
         "lang_flags": LANG_FLAGS,
         "country_flag": COUNTRY_FLAG,
         "test_count": test_count,
-        "static_v": STATIC_VERSION,
-        "home_search_image": HOME_SEARCH_IMAGE,
-        "client_register_image": CLIENT_REGISTER_IMAGE,
-        "home_why_image": HOME_WHY_IMAGE,
-        "public_contact": public_contact,
     }
 
 
@@ -1371,15 +1017,14 @@ def set_language(lang):
 
 @app.route("/theme.css")
 def theme_css():
-    from theme_ops import ensure_theme_data, generate_theme_css, get_published_config
-
     settings = get_site_settings()
-    ensure_theme_data(settings)
-    config = get_published_config(settings)
-    css = generate_theme_css(config)
-    response = Response(css, mimetype="text/css")
-    response.headers["Cache-Control"] = "public, max-age=300"
-    return response
+    css = f""":root {{
+  --color-primary: {settings.primary_color};
+  --color-primary-dark: {settings.primary_dark};
+  --color-accent: {settings.accent_color};
+  --color-bg: {settings.bg_color};
+}}"""
+    return Response(css, mimetype="text/css")
 
 
 @app.route("/api/takvim/ical/<token>.ics")
@@ -1841,13 +1486,27 @@ def admin_logout():
 @permission_required("dashboard")
 def admin_dashboard():
     user = get_current_user()
-    therapist_id = user.therapist_id if user.role == "therapist" and user.therapist_id else None
-    exec_data = build_executive_dashboard(therapist_id=therapist_id)
+    appointment_query = Appointment.query
+    if user.role == "therapist" and user.therapist_id:
+        appointment_query = appointment_query.filter_by(therapist_id=user.therapist_id)
+
+    stats = {
+        "therapists": Therapist.query.count() if user.role == "admin" else None,
+        "appointments": appointment_query.count(),
+        "pending": appointment_query.filter_by(status="beklemede").count(),
+        "posts": BlogPost.query.count() if user.role in ("admin", "editor") else None,
+        "widgets": Widget.query.count() if user.role in ("admin", "editor") else None,
+        "slides": Slider.query.count() if user.role in ("admin", "editor") else None,
+    }
+    chart_stats = appointment_chart_stats(appointment_query)
+    recent_appointments = appointment_query.order_by(Appointment.created_at.desc()).limit(5).all()
     visitor_stats = get_visitor_stats() if user.role == "admin" else None
     return render_template(
         "admin/dashboard.html",
-        exec=exec_data,
+        stats=stats,
+        chart_stats=chart_stats,
         visitor_stats=visitor_stats,
+        recent_appointments=recent_appointments,
         user=user,
     )
 
@@ -1855,55 +1514,8 @@ def admin_dashboard():
 @app.route("/admin/terapistler")
 @permission_required("therapists")
 def admin_therapists():
-    from therapist_ops import (
-        AGE_GROUPS,
-        EMPLOYMENT_TYPES,
-        THERAPY_APPROACHES,
-        apply_therapist_filters,
-        build_ai_ops,
-        build_therapist_kpis,
-        build_therapist_rows,
-        build_view_permissions,
-        _compute_stats,
-    )
-
-    user = get_current_user()
-    today = date.today()
-    base = Therapist.query.order_by(Therapist.sort_order, Therapist.name)
-    scope, filters = apply_therapist_filters(base, request.args)
-    therapists = scope.all()
-    stats = _compute_stats(therapists, today)
-    kpis = build_therapist_kpis(therapists, stats, today)
-    rows = build_therapist_rows(therapists, stats)
-    ai_ops = build_ai_ops(therapists, stats)
-
-    branches = sorted({r["branch"] for r in rows if r["branch"] and r["branch"] != "—"})
-    cities = sorted({t.city for t in therapists if t.city})
-    languages = sorted({code for t in therapists for code in t.language_codes()})
-    specialties = sorted({s for t in therapists for s in t.specialty_list()})
-
-    query_args = {k: v for k, v in filters.items() if v}
-    view_perms = build_view_permissions(user)
-
-    return render_template(
-        "admin/therapists.html",
-        rows=rows,
-        kpis=kpis,
-        ai_ops=ai_ops,
-        filters=filters,
-        query_args=query_args,
-        branches=branches,
-        cities=cities,
-        languages=languages,
-        specialties=specialties,
-        approaches=THERAPY_APPROACHES,
-        age_groups=AGE_GROUPS,
-        employment_types=EMPLOYMENT_TYPES,
-        total=len(therapists),
-        today=today,
-        user_role=user.role,
-        view_perms=view_perms,
-    )
+    therapists = Therapist.query.order_by(Therapist.sort_order).all()
+    return render_template("admin/therapists.html", therapists=therapists)
 
 
 @app.route("/admin/terapist/ekle", methods=["GET", "POST"])
@@ -1975,77 +1587,8 @@ def admin_therapist_delete(id):
 @app.route("/admin/slider")
 @permission_required("sliders")
 def admin_sliders():
-    from slider_ops import (
-        CONTENT_TYPES,
-        CTA_TARGETS,
-        DEVICE_LABELS,
-        LANG_LABELS,
-        QUICK_CHIPS,
-        STATUS_LABELS,
-        apply_filters,
-        build_kpis,
-        build_rows,
-        build_view_permissions,
-        preview_slides_for_live,
-    )
-
-    user = get_current_user()
-    today = date.today()
-    view_mode = (request.args.get("view") or "list").strip()
-    all_slides = Slider.query.order_by(Slider.sort_order).all()
-    slides, filters = apply_filters(all_slides, request.args)
-    kpis = build_kpis(all_slides, today)
-    rows = build_rows(slides)
-    view_perms = build_view_permissions(user)
-    live_previews = preview_slides_for_live(all_slides)
-
-    nav_args = {k: v for k, v in filters.items() if v and k != "view"}
-    quick_chips = []
-    for chip in QUICK_CHIPS:
-        params = {k: v for k, v in chip["params"].items() if v}
-        chip_args = {**nav_args, **params}
-        quick_chips.append({
-            **chip,
-            "url": url_for("admin_sliders", **{k: v for k, v in chip_args.items() if v}),
-            "active": all(filters.get(k) == v for k, v in chip["params"].items() if k != "chip")
-            and (not chip["params"].get("chip") or filters.get("chip") == chip["params"].get("chip")),
-        })
-
-    list_url = url_for("admin_sliders", **{k: v for k, v in nav_args.items() if v})
-    card_url = url_for("admin_sliders", view="card", **{k: v for k, v in nav_args.items() if v})
-    preview_url = url_for("admin_sliders", view="preview", **{k: v for k, v in nav_args.items() if v})
-
-    branches = sorted({(_default_slider_branch(s)) for s in all_slides})
-
-    return render_template(
-        "admin/sliders.html",
-        rows=rows,
-        kpis=kpis,
-        marketing=marketing,
-        filters=filters,
-        quick_chips=quick_chips,
-        content_types=CONTENT_TYPES,
-        status_labels=STATUS_LABELS,
-        device_labels=DEVICE_LABELS,
-        lang_labels=LANG_LABELS,
-        cta_targets=CTA_TARGETS,
-        view_mode=view_mode,
-        view_perms=view_perms,
-        live_previews=live_previews,
-        total=len(slides),
-        today=today,
-        list_url=list_url,
-        card_url=card_url,
-        preview_url=preview_url,
-        nav_args=nav_args,
-        branches=branches,
-        site_url=url_for("home"),
-    )
-
-
-def _default_slider_branch(slide):
-    from slider_ops import _default_cms
-    return _default_cms(slide).get("branch", "Merkez")
+    slides = Slider.query.order_by(Slider.sort_order).all()
+    return render_template("admin/sliders.html", slides=slides)
 
 
 @app.route("/admin/slider/ekle", methods=["GET", "POST"])
@@ -2100,66 +1643,89 @@ def admin_slider_delete(id):
 @permission_required("appointments")
 def admin_appointments():
     user = get_current_user()
+    status_filter = request.args.get("status", "")
+    therapist_filter = request.args.get("therapist_id", type=int)
+    search = (request.args.get("q") or "").strip()
+    date_from = (request.args.get("from") or "").strip()
+    date_to = (request.args.get("to") or "").strip()
     page = max(request.args.get("page", 1, type=int), 1)
     per_page = 25
-    view_mode = (request.args.get("view") or "list").strip()
 
-    base_scope = Appointment.query
+    scope = Appointment.query
     if user.role == "therapist" and user.therapist_id:
-        base_scope = base_scope.filter_by(therapist_id=user.therapist_id)
+        scope = scope.filter_by(therapist_id=user.therapist_id)
+        therapist_filter = user.therapist_id
+    elif therapist_filter:
+        scope = scope.filter_by(therapist_id=therapist_filter)
 
-    scope, filters = apply_appointment_filters(base_scope, request.args)
-    if user.role == "therapist" and user.therapist_id:
-        filters["therapist_id"] = user.therapist_id
+    if search:
+        like = f"%{search}%"
+        scope = scope.filter(
+            db.or_(
+                Appointment.patient_name.ilike(like),
+                Appointment.patient_email.ilike(like),
+                Appointment.patient_phone.ilike(like),
+            )
+        )
 
-    all_appts = scope.order_by(
-        Appointment.appointment_date.desc(), Appointment.appointment_time.desc()
-    ).all()
+    def _parse_date(value):
+        try:
+            return datetime.strptime(value, "%Y-%m-%d").date()
+        except ValueError:
+            return None
 
-    ops = build_appointment_context(scope, all_appts, user, filters)
-    rows = ops["rows"]
-    total = len(rows)
-    pages = max((total + per_page - 1) // per_page, 1)
-    page = min(page, pages)
-    paginated_rows = rows[(page - 1) * per_page : page * per_page]
+    parsed_from = _parse_date(date_from) if date_from else None
+    parsed_to = _parse_date(date_to) if date_to else None
+    if parsed_from:
+        scope = scope.filter(Appointment.appointment_date >= parsed_from)
+    if parsed_to:
+        scope = scope.filter(Appointment.appointment_date <= parsed_to)
 
     status_counts = {
-        key: sum(1 for a in all_appts if a.status == key) for key in Appointment.STATUS_LABELS
+        key: scope.filter(Appointment.status == key).count()
+        for key in Appointment.STATUS_LABELS
     }
-    total_all = len(all_appts)
+    total_all = sum(status_counts.values())
+
+    query = scope.filter_by(status=status_filter) if status_filter else scope
+    total = query.count()
+    pages = max((total + per_page - 1) // per_page, 1)
+    page = min(page, pages)
+    appointments = (
+        query.order_by(Appointment.appointment_date.desc(), Appointment.appointment_time.desc())
+        .offset((page - 1) * per_page)
+        .limit(per_page)
+        .all()
+    )
+
+    emails = {(a.patient_email or "").lower() for a in appointments if a.patient_email}
+    member_emails = set()
+    if emails:
+        member_emails = {
+            (p.email or "").lower()
+            for p in ClientProfile.query.filter(ClientProfile.email.in_(emails)).all()
+        }
 
     therapists = Therapist.query.order_by(Therapist.name).all()
-    query_args = {k: v for k, v in filters.items() if v}
-    if view_mode != "list":
-        query_args["view"] = view_mode
-
     return render_template(
         "admin/appointments.html",
-        rows=paginated_rows,
-        kpis=ops["kpis"],
-        timeline=ops["timeline"],
-        calendar_days=ops["calendar_days"],
-        ai_ops=ops["ai_ops"],
-        analytics=ops["analytics"],
-        cities=ops["cities"],
-        reasons=ops["reasons"],
-        member_emails=ops["member_emails"],
+        appointments=appointments,
         therapists=therapists,
-        filters=filters,
-        query_args=query_args,
+        status_filter=status_filter,
+        therapist_filter=therapist_filter,
+        search=search,
+        date_from=date_from,
+        date_to=date_to,
         status_counts=status_counts,
         total_all=total_all,
         total=total,
         page=page,
         pages=pages,
         per_page=per_page,
+        member_emails=member_emails,
         today=date.today(),
         status_labels=Appointment.STATUS_LABELS,
-        session_type_labels=Appointment.SESSION_LABELS,
-        payment_labels=PAYMENT_LABELS,
-        risk_labels=SessionRecord.RISK_LABELS,
         is_therapist_view=user.role == "therapist",
-        view_mode=view_mode,
     )
 
 
@@ -2217,114 +1783,8 @@ def admin_appointment_delete(id):
 @app.route("/admin/blog")
 @permission_required("blog")
 def admin_blog():
-    from blog_ops import (
-        CMS_CATEGORIES,
-        QUICK_FILTER_CHIPS,
-        STATUS_LABELS,
-        apply_blog_filters,
-        build_author_directory,
-        build_author_stats,
-        build_blog_kpis,
-        build_blog_rows,
-        build_calendar_events,
-        build_content_lifecycle,
-        build_sidebar_meta,
-        build_top_tags,
-        build_view_permissions,
-    )
-    from blog_cms_insights import (
-        build_content_performance,
-        build_needs_update,
-        build_psikoplan_opportunities,
-    )
-
-    user = get_current_user()
-    today = date.today()
-    view_mode = (request.args.get("view") or "list").strip()
-    cal_mode = (request.args.get("cal") or "month").strip()
-
-    base = BlogPost.query
-    posts, filters = apply_blog_filters(base, request.args, user)
-    all_posts = BlogPost.query.order_by(BlogPost.created_at.desc()).all()
-
-    kpis = build_blog_kpis(all_posts, today)
-    author_dir = build_author_directory()
-    rows = build_blog_rows(posts, author_dir)
-    top_tags = build_top_tags(all_posts)
-    authors = build_author_stats(all_posts)
-    content_lifecycle = build_content_lifecycle(all_posts)
-    sidebar_meta = build_sidebar_meta(CMS_CATEGORIES, top_tags, authors)
-    calendar_events = build_calendar_events(posts)
-    content_performance = build_content_performance(all_posts)
-    psikoplan_opportunities = build_psikoplan_opportunities()
-    needs_update = build_needs_update(all_posts, today)
-    view_perms = build_view_permissions(user)
-
-    quick_chips = []
-    for chip in QUICK_FILTER_CHIPS:
-        params = {k: v for k, v in chip["params"].items() if v}
-        chip_args = {**nav_args, **params} if 'nav_args' in dir() else params
-        quick_chips.append({
-            **chip,
-            "url": url_for("admin_blog", **{k: v for k, v in chip_args.items() if v}),
-            "active": all(filters.get(k) == v for k, v in chip["params"].items() if k != "chip")
-            and (not chip["params"].get("chip") or filters.get("chip") == chip["params"].get("chip")),
-        })
-
-    author_names = sorted({p.author for p in all_posts if p.author})
-    branches = sorted({_default_branch(p) for p in all_posts})
-    query_args = {k: v for k, v in filters.items() if v}
-    if view_mode != "list":
-        query_args["view"] = view_mode
-    if cal_mode != "month":
-        query_args["cal"] = cal_mode
-
-    nav_args = {k: v for k, v in query_args.items() if k not in ("view", "cal")}
-    calendar_url_args = {**nav_args, "view": "calendar", "cal": cal_mode}
-    list_url_args = nav_args
-    cal_week_url = url_for("admin_blog", view="calendar", cal="week", **nav_args)
-    cal_month_url = url_for("admin_blog", view="calendar", cal="month", **nav_args)
-    list_view_url = url_for("admin_blog", **nav_args)
-    calendar_view_url = url_for("admin_blog", view="calendar", cal=cal_mode, **nav_args)
-
-    return render_template(
-        "admin/blog.html",
-        rows=rows,
-        kpis=kpis,
-        marketing=marketing,
-        filters=filters,
-        query_args=query_args,
-        calendar_url_args=calendar_url_args,
-        list_url_args=list_url_args,
-        cal_week_url=cal_week_url,
-        cal_month_url=cal_month_url,
-        list_view_url=list_view_url,
-        calendar_view_url=calendar_view_url,
-        categories=CMS_CATEGORIES,
-        status_labels=STATUS_LABELS,
-        top_tags=top_tags,
-        authors=authors,
-        author_names=author_names,
-        calendar_events=calendar_events,
-        content_performance=content_performance,
-        psikoplan_opportunities=psikoplan_opportunities,
-        needs_update=needs_update,
-        quick_chips=quick_chips,
-        content_lifecycle=content_lifecycle,
-        sidebar_meta=sidebar_meta,
-        branches=branches,
-        total=len(posts),
-        today=today,
-        view_mode=view_mode,
-        cal_mode=cal_mode,
-        user_role=user.role,
-        view_perms=view_perms,
-    )
-
-
-def _default_branch(post):
-    from blog_ops import _default_cms
-    return _default_cms(post).get("branch", "Merkez")
+    posts = BlogPost.query.order_by(BlogPost.created_at.desc()).all()
+    return render_template("admin/blog.html", posts=posts)
 
 
 @app.route("/admin/blog/ekle", methods=["GET", "POST"])
@@ -2388,81 +1848,8 @@ def admin_blog_delete(id):
 @app.route("/admin/widgetlar")
 @permission_required("widgets")
 def admin_widgets():
-    from widget_ops import (
-        DEVICE_LABELS,
-        LANG_LABELS,
-        PAGE_OPTIONS,
-        POSITION_OPTIONS,
-        QUICK_CHIPS,
-        STATUS_LABELS,
-        WIDGET_TYPES,
-        apply_filters,
-        build_kpis,
-        build_rows,
-        build_view_permissions,
-        get_template_library,
-        preview_widgets_for_live,
-    )
-
-    user = get_current_user()
-    today = date.today()
-    view_mode = (request.args.get("view") or "card").strip()
-    all_widgets = Widget.query.order_by(Widget.sort_order).all()
-    widgets, filters = apply_filters(all_widgets, request.args)
-    kpis = build_kpis(all_widgets, today)
-    rows = build_rows(widgets)
-    view_perms = build_view_permissions(user)
-    live_previews = preview_widgets_for_live(all_widgets)
-    template_library = get_template_library()
-
-    nav_args = {k: v for k, v in filters.items() if v and k != "view"}
-    quick_chips = []
-    for chip in QUICK_CHIPS:
-        params = {k: v for k, v in chip["params"].items() if v}
-        chip_args = {**nav_args, **params}
-        quick_chips.append({
-            **chip,
-            "url": url_for("admin_widgets", **{k: v for k, v in chip_args.items() if v}),
-            "active": all(filters.get(k) == v for k, v in chip["params"].items() if k != "chip")
-            and (not chip["params"].get("chip") or filters.get("chip") == chip["params"].get("chip")),
-        })
-
-    list_url = url_for("admin_widgets", view="list", **{k: v for k, v in nav_args.items() if v})
-    card_url = url_for("admin_widgets", view="card", **{k: v for k, v in nav_args.items() if v})
-    preview_url = url_for("admin_widgets", view="preview", **{k: v for k, v in nav_args.items() if v})
-
-    branches = sorted({(_default_widget_branch(w)) for w in all_widgets})
-
-    return render_template(
-        "admin/widgets.html",
-        rows=rows,
-        kpis=kpis,
-        filters=filters,
-        quick_chips=quick_chips,
-        widget_types=WIDGET_TYPES,
-        status_labels=STATUS_LABELS,
-        device_labels=DEVICE_LABELS,
-        lang_labels=LANG_LABELS,
-        page_options=PAGE_OPTIONS,
-        position_options=POSITION_OPTIONS,
-        view_mode=view_mode,
-        view_perms=view_perms,
-        live_previews=live_previews,
-        template_library=template_library,
-        total=len(rows),
-        today=today,
-        list_url=list_url,
-        card_url=card_url,
-        preview_url=preview_url,
-        nav_args=nav_args,
-        branches=branches,
-        site_url=url_for("home"),
-    )
-
-
-def _default_widget_branch(widget):
-    from widget_ops import _default_cms
-    return _default_cms(widget).get("branch", "Merkez")
+    widgets = Widget.query.order_by(Widget.sort_order).all()
+    return render_template("admin/widgets.html", widgets=widgets, widget_types=WIDGET_TYPES)
 
 
 @app.route("/admin/widget/ekle", methods=["GET", "POST"])
@@ -2644,75 +2031,8 @@ def admin_email_settings():
 @app.route("/admin/testler")
 @permission_required("tests")
 def admin_tests():
-    from test_ops import (
-        AGE_GROUP_LABELS,
-        CATEGORIES,
-        GENDER_LABELS,
-        LANG_LABELS,
-        QUICK_CHIPS,
-        STATUS_LABELS,
-        TEST_TYPE_LABELS,
-        apply_filters,
-        build_kpis,
-        build_rows,
-        build_view_permissions,
-        get_template_library,
-    )
-
-    user = get_current_user()
-    today = date.today()
-    view_mode = (request.args.get("view") or "list").strip()
-    all_tests = PsychologicalTest.query.order_by(PsychologicalTest.sort_order).all()
-    tests, filters = apply_filters(all_tests, request.args)
-    kpis = build_kpis(all_tests, today)
-    rows = build_rows(tests)
-    view_perms = build_view_permissions(user)
-    template_library = get_template_library()
-
-    nav_args = {k: v for k, v in filters.items() if v and k != "view"}
-    quick_chips = []
-    for chip in QUICK_CHIPS:
-        params = {k: v for k, v in chip["params"].items() if v}
-        chip_args = {**nav_args, **params}
-        quick_chips.append({
-            **chip,
-            "url": url_for("admin_tests", **{k: v for k, v in chip_args.items() if v}),
-            "active": all(filters.get(k) == v for k, v in chip["params"].items() if k != "chip")
-            and (not chip["params"].get("chip") or filters.get("chip") == chip["params"].get("chip")),
-        })
-
-    list_url = url_for("admin_tests", view="list", **{k: v for k, v in nav_args.items() if v})
-    card_url = url_for("admin_tests", view="card", **{k: v for k, v in nav_args.items() if v})
-
-    branches = sorted({(_default_test_branch(t)) for t in all_tests})
-
-    return render_template(
-        "admin/tests.html",
-        rows=rows,
-        kpis=kpis,
-        filters=filters,
-        quick_chips=quick_chips,
-        categories=CATEGORIES,
-        status_labels=STATUS_LABELS,
-        test_type_labels=TEST_TYPE_LABELS,
-        age_group_labels=AGE_GROUP_LABELS,
-        gender_labels=GENDER_LABELS,
-        lang_labels=LANG_LABELS,
-        view_mode=view_mode,
-        view_perms=view_perms,
-        template_library=template_library,
-        total=len(rows),
-        today=today,
-        list_url=list_url,
-        card_url=card_url,
-        nav_args=nav_args,
-        branches=branches,
-    )
-
-
-def _default_test_branch(test):
-    from test_ops import _default_cms
-    return _default_cms(test).get("branch", "Merkez")
+    tests = PsychologicalTest.query.order_by(PsychologicalTest.sort_order).all()
+    return render_template("admin/tests.html", tests=tests)
 
 
 @app.route("/admin/test/<int:id>/toggle", methods=["POST"])
