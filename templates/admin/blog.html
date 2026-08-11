@@ -2,47 +2,96 @@
 
 {% block title %}Blog{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/blog-cms.css') }}?v={{ static_v|default('20260806r') }}">
+{% endblock %}
+
 {% block content %}
-<div class="admin-page">
-  <div class="admin-header">
-    <h1>Blog Yazıları</h1>
-    <a href="{{ url_for('admin_blog_add') }}" class="btn btn-primary">+ Yazı Ekle</a>
+{% set published_count = posts|selectattr('is_published')|list|length %}
+{% set draft_count = posts|rejectattr('is_published')|list|length %}
+{% set cats = posts|map(attribute='category')|list %}
+{% set cat_count = cats|unique|list|length %}
+<div class="admin-page bcm-saas-layout">
+  <div class="bcm-header">
+    <div>
+      <h1>Blog CMS</h1>
+      <p class="bcm-sub">{{ posts|length }} yazı · içerik yayınlama ve taslak yönetimi</p>
+    </div>
+    <div class="admin-header-actions">
+      <a href="{{ url_for('admin_blog_add') }}" class="btn btn-primary btn-sm">+ Yazı Ekle</a>
+    </div>
   </div>
 
-  <div class="admin-card">
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>Başlık</th>
-          <th>Yazar</th>
-          <th>Tarih</th>
-          <th>Durum</th>
-          <th>İşlemler</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in posts %}
-          <tr>
-            <td><strong>{{ p.title }}</strong></td>
-            <td>{{ p.author }}</td>
-            <td>{{ p.created_at.strftime('%d.%m.%Y') }}</td>
-            <td>
-              {% if p.is_published %}
-                <span class="badge badge-onaylandi">Yayında</span>
-              {% else %}
-                <span class="badge badge-beklemede">Taslak</span>
-              {% endif %}
-            </td>
-            <td class="actions">
-              <a href="{{ url_for('admin_blog_edit', id=p.id) }}" class="btn btn-sm btn-outline">Düzenle</a>
-              <form action="{{ url_for('admin_blog_delete', id=p.id) }}" method="POST" onsubmit="return confirm('Silmek istediğinize emin misiniz?')">
-                <button type="submit" class="btn btn-sm btn-danger">Sil</button>
-              </form>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="raptor-kpi-strip" role="navigation" aria-label="Blog özeti">
+    <a href="{{ url_for('admin_blog') }}" class="raptor-pill raptor-pill-blue {% if not status_filter %}is-active{% endif %}">
+      <span class="raptor-pill-value">{{ posts|length }}</span>
+      <span class="raptor-pill-label">Tümü</span>
+    </a>
+    <a href="{{ url_for('admin_blog', status='published') }}" class="raptor-pill raptor-pill-green {% if status_filter == 'published' %}is-active{% endif %}">
+      <span class="raptor-pill-value">{{ published_count }}</span>
+      <span class="raptor-pill-label">Yayında</span>
+    </a>
+    <a href="{{ url_for('admin_blog', status='draft') }}" class="raptor-pill raptor-pill-amber {% if status_filter == 'draft' %}is-active{% endif %}">
+      <span class="raptor-pill-value">{{ draft_count }}</span>
+      <span class="raptor-pill-label">Taslak</span>
+    </a>
+    <span class="raptor-pill raptor-pill-violet" aria-hidden="true">
+      <span class="raptor-pill-value">{{ cat_count }}</span>
+      <span class="raptor-pill-label">Kategori</span>
+    </span>
+  </div>
+
+  <form method="GET" class="bcm-toolbar">
+    {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+    <div class="filter-field">
+      <label for="q">Ara</label>
+      <input type="search" id="q" name="q" value="{{ search }}" placeholder="Başlık, yazar veya etiket">
+    </div>
+    <div class="filter-actions">
+      <button type="submit" class="btn btn-sm btn-primary">Filtrele</button>
+      <a href="{{ url_for('admin_blog') }}" class="btn btn-sm btn-ghost">Temizle</a>
+    </div>
+  </form>
+
+  <div class="bcm-board">
+    <div class="bcm-board-head">
+      <h2>
+        {% if status_filter == 'published' %}Yayındaki yazılar
+        {% elif status_filter == 'draft' %}Taslaklar
+        {% else %}Tüm yazılar{% endif %}
+      </h2>
+      <span class="muted">{{ filtered|length }} kayıt</span>
+    </div>
+
+    {% for p in filtered %}
+      <article class="bcm-row">
+        <div>
+          <div class="bcm-title">{{ p.title }}</div>
+          <span class="bcm-meta">{{ p.author }} · {{ p.category }}</span>
+        </div>
+        <div>
+          <small class="muted">{{ p.created_at.strftime('%d.%m.%Y') }}</small>
+        </div>
+        <div>
+          {% if p.is_published %}
+            <span class="badge badge-onaylandi">Yayında</span>
+          {% else %}
+            <span class="badge badge-beklemede">Taslak</span>
+          {% endif %}
+        </div>
+        <div class="actions">
+          <a href="{{ url_for('admin_blog_edit', id=p.id) }}" class="btn btn-sm btn-outline">Düzenle</a>
+          <form action="{{ url_for('admin_blog_delete', id=p.id) }}" method="POST" onsubmit="return confirm('Silmek istediğinize emin misiniz?')">
+            <button type="submit" class="btn btn-sm btn-danger">Sil</button>
+          </form>
+        </div>
+      </article>
+    {% else %}
+      <div class="bcm-empty">
+        <strong>Yazı bulunamadı</strong>
+        <span>Filtreleri değiştirin veya yeni bir yazı ekleyin.</span>
+      </div>
+    {% endfor %}
   </div>
 </div>
 {% endblock %}
