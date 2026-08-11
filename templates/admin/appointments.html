@@ -2,6 +2,10 @@
 
 {% block title %}Randevular{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/appointment-ops-crm.css') }}?v={{ static_v|default('20260806r') }}">
+{% endblock %}
+
 {% block content %}
 <div class="admin-page">
   <div class="admin-header">

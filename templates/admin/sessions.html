@@ -2,6 +2,10 @@
 
 {% block title %}Seans Kayıtları{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/session-list.css') }}?v={{ static_v|default('20260806r') }}">
+{% endblock %}
+
 {% block content %}
 <div class="admin-page sessions-page">
   <div class="admin-header">
