@@ -1,0 +1,47 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Slider{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>Ana Sayfa Slider</h1>
+    <a href="{{ url_for('admin_slider_add') }}" class="btn btn-primary">+ Slide Ekle</a>
+  </div>
+
+  <div class="admin-card">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Başlık</th>
+          <th>Alt Başlık</th>
+          <th>Sıra</th>
+          <th>Durum</th>
+          <th>İşlemler</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in slides %}
+          <tr>
+            <td><strong>{{ s.title }}</strong></td>
+            <td>{{ s.subtitle[:50] }}{% if s.subtitle|length > 50 %}...{% endif %}</td>
+            <td>{{ s.sort_order }}</td>
+            <td>
+              {% if s.is_active %}<span class="badge badge-onaylandi">Aktif</span>
+              {% else %}<span class="badge badge-iptal">Pasif</span>{% endif %}
+            </td>
+            <td class="actions">
+              <a href="{{ url_for('admin_slider_edit', id=s.id) }}" class="btn btn-sm btn-outline">Düzenle</a>
+              <form action="{{ url_for('admin_slider_delete', id=s.id) }}" method="POST" onsubmit="return confirm('Silmek istediğinize emin misiniz?')">
+                <button type="submit" class="btn btn-sm btn-danger">Sil</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="empty">Henüz slider eklenmemiş.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

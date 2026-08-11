@@ -1,0 +1,134 @@
+{% extends 'admin/base.html' %}
+{% block title %}Yeni Seans{% endblock %}
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>Seans Kaydı Aç</h1>
+    <p>Başvuru nedenlerini seçin (birden fazla olabilir)</p>
+  </div>
+  <form method="post" class="admin-card admin-form">
+    {% if appointment %}
+      <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+      <p class="muted">Randevu: {{ appointment.patient_name }} — {{ appointment.appointment_date }}</p>
+    {% endif %}
+
+    {% if therapists|length > 1 %}
+      <div class="form-group">
+        <label>Terapist</label>
+        <select name="therapist_id" required>
+          {% for t in therapists %}
+            <option value="{{ t.id }}" {% if appointment and appointment.therapist_id == t.id %}selected{% endif %}>{{ t.name }} ({{ t.city }})</option>
+          {% endfor %}
+        </select>
+      </div>
+    {% else %}
+      <input type="hidden" name="therapist_id" value="{{ therapists[0].id if therapists else '' }}">
+    {% endif %}
+
+    {% set prefill_email = (appointment.patient_email if appointment else '')|lower %}
+    {% set matched = clients | selectattr('email', 'equalto', prefill_email) | list | first %}
+
+    <div class="form-group">
+      <label>Danışan (aktif üyelikler)</label>
+      <select name="client_profile_id" id="clientSelect">
+        <option value="">— Yeni danışan / üyelik yok —</option>
+        {% for c in clients %}
+          <option value="{{ c.id }}" {% if matched and matched.id == c.id %}selected{% endif %}>
+            {{ c.full_name }} — {{ c.email }}{% if not c.invite_accepted %} (şifre bekliyor){% endif %}
+          </option>
+        {% endfor %}
+      </select>
+      <small class="muted">Kayıtlı üye seçin; listede yoksa aşağıya ad ve e-posta girin, üyelik otomatik oluşturulur.</small>
+    </div>
+
+    <div class="form-row" id="newClientFields" {% if matched %}hidden{% endif %}>
+      <div class="form-group">
+        <label>Danışan adı</label>
+        <input type="text" name="patient_name" id="patientName" value="{{ appointment.patient_name if appointment and not matched else '' }}">
+      </div>
+      <div class="form-group">
+        <label>E-posta</label>
+        <input type="email" name="patient_email" id="patientEmail" value="{{ appointment.patient_email if appointment and not matched else '' }}">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Başvuru Nedenleri</label>
+      <div class="reason-select-grid">
+        {% for reason in reasons %}
+          <label class="reason-check">
+            <input type="checkbox" name="reasons" value="{{ reason }}" {% if reason in selected_reasons %}checked{% endif %}>
+            <span>{{ reason }}</span>
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Seans türü</label>
+        <select name="session_type">
+          {% for key, label in type_labels.items() %}
+            <option value="{{ key }}" {% if appointment and appointment.session_type == key %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Durum</label>
+        <select name="status">
+          {% for key, label in status_labels.items() %}
+            <option value="{{ key }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Risk seviyesi</label>
+        <select name="risk_level">
+          {% for key, label in risk_labels.items() %}
+            <option value="{{ key }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Seans süresi (dk)</label>
+        <input type="number" name="duration_minutes" min="10" max="240" step="5" value="50">
+      </div>
+      <div class="form-group">
+        <label>Sonraki seans tarihi</label>
+        <input type="date" name="next_session_date">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Kısa not (isteğe bağlı)</label>
+      <textarea name="note" rows="3"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Kaydet</button>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    const select = document.getElementById('clientSelect');
+    const fields = document.getElementById('newClientFields');
+    const name = document.getElementById('patientName');
+    const email = document.getElementById('patientEmail');
+    if (!select || !fields) return;
+
+    function sync() {
+      const isNew = !select.value;
+      fields.hidden = !isNew;
+      if (name) name.required = isNew;
+      if (email) email.required = isNew;
+    }
+
+    select.addEventListener('change', sync);
+    sync();
+  })();
+</script>
+{% endblock %}

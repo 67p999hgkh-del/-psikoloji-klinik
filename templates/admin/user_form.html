@@ -1,0 +1,82 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}{% if user %}Kullanıcı Düzenle{% else %}Kullanıcı Ekle{% endif %}{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>{% if user %}Kullanıcı Düzenle{% else %}Yeni Kullanıcı{% endif %}</h1>
+    <a href="{{ url_for('admin_users', tab=('clients' if user and user.role == 'client' else ('therapists' if user and user.role == 'therapist' else 'staff'))) }}" class="btn btn-outline">← Geri</a>
+  </div>
+
+  <div class="admin-card">
+    <form method="POST" class="admin-form" id="user-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="username">Kullanıcı Adı</label>
+          <input type="text" id="username" name="username" value="{{ user.username if user else '' }}" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Şifre {% if user %}<small>(boş bırakılırsa değişmez)</small>{% endif %}</label>
+          <input type="password" id="password" name="password" {% if not user %}required{% endif %}>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="role">Rol</label>
+          <select id="role" name="role" required>
+            {% for role_key in roles %}
+              <option value="{{ role_key }}" {% if user and user.role == role_key %}selected{% elif not user and role_key == 'editor' %}selected{% endif %}>
+                {{ role_labels.get(role_key, role_key) }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group" id="therapist-field" style="display:none;">
+          <label for="therapist_id">Terapist</label>
+          <select id="therapist_id" name="therapist_id">
+            <option value="">Terapist seçin</option>
+            {% for therapist in therapists %}
+              <option value="{{ therapist.id }}" {% if user and user.therapist_id == therapist.id %}selected{% endif %}>{{ therapist.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" name="is_active" {% if not user or user.is_active %}checked{% endif %}>
+          Aktif hesap
+        </label>
+      </div>
+
+      <div class="role-help admin-card role-help-card">
+        <h3>Rol yetkileri</h3>
+        <ul>
+          <li><strong>Admin:</strong> Tüm panel, kullanıcı yönetimi, terapist, tema, e-posta</li>
+          <li><strong>Editor:</strong> Blog, slider, widget ve test yönetimi</li>
+          <li><strong>Terapist:</strong> Yalnızca kendi randevularını görür ve yönetir</li>
+        </ul>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Kaydet</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  const roleSelect = document.getElementById('role');
+  const therapistField = document.getElementById('therapist-field');
+  const therapistSelect = document.getElementById('therapist_id');
+
+  function toggleTherapistField() {
+    const isTherapist = roleSelect.value === 'therapist';
+    therapistField.style.display = isTherapist ? 'block' : 'none';
+    therapistSelect.required = isTherapist;
+  }
+
+  roleSelect.addEventListener('change', toggleTherapistField);
+  toggleTherapistField();
+</script>
+{% endblock %}

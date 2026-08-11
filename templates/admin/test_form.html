@@ -1,0 +1,42 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Test Düzenle{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>Test Düzenle — {{ test.title }}</h1>
+    <a href="{{ url_for('admin_tests') }}" class="btn btn-outline">← Geri</a>
+  </div>
+
+  <div class="admin-card">
+    <form method="POST" class="admin-form">
+      <div class="form-group">
+        <label>SEO Başlık</label>
+        <input type="text" name="seo_title" value="{{ test.seo_title }}">
+      </div>
+      <div class="form-group">
+        <label>SEO Açıklama</label>
+        <textarea name="seo_description" rows="3">{{ test.seo_description }}</textarea>
+      </div>
+      <div class="form-group">
+        <label>SEO Hashtag / Anahtar Kelimeler</label>
+        <input type="text" name="seo_keywords" value="{{ test.seo_keywords }}" placeholder="#depresyon #ucretsiztest #psikoloji">
+      </div>
+      <div class="form-group">
+        <label>Dil Ayarları</label>
+        <div class="checkbox-group">
+          {% for code, label in [('tr', 'Türkçe'), ('en', 'English'), ('de', 'Deutsch')] %}
+            <label class="checkbox-label">
+              <input type="checkbox" name="available_langs" value="{{ code }}" {% if code in test.available_lang_codes() %}checked{% endif %}>
+              {{ label }}
+            </label>
+          {% endfor %}
+        </div>
+        <small class="form-hint">Test yalnızca seçili dillerde listelenir.</small>
+      </div>
+      <button type="submit" class="btn btn-primary">Kaydet</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

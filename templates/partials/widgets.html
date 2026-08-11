@@ -1,0 +1,127 @@
+{% from 'partials/social_icons.html' import social_icon with context %}
+{% macro render_widget(widget) %}
+  {% set data = widget.parsed_content() %}
+
+  {% if widget.widget_type == 'hero' %}
+    <section class="hero">
+      <div class="container hero-inner">
+        <div class="hero-content">
+          <h1>{{ widget.title }}</h1>
+          <p class="hero-subtitle">{{ data.get('subtitle', '') }}</p>
+          {% if data.get('button_link') %}
+            <a href="{{ data.button_link }}" class="btn btn-primary btn-lg">{{ data.get('button_text', t('widget.continue')) }}</a>
+          {% endif %}
+        </div>
+        <div class="hero-visual">
+          <div class="hero-circle"></div>
+          <div class="hero-card">
+            <span class="hero-card-icon">💚</span>
+            <p>{{ t('widget.safe_env') }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  {% elif widget.widget_type == 'stats' %}
+    {% set stat_keys = ['stats.experts', 'stats.appointments', 'stats.cities', 'stats.satisfaction'] %}
+    {% set stat_colors = ['blue', 'purple', 'green', 'orange'] %}
+    <section class="section stats-section">
+      <div class="container">
+        <h2 class="section-title">{{ t('stats.title') }}</h2>
+        <div class="stats-scroll">
+          <div class="stats-grid">
+            {% for item in data.get('items', []) %}
+              <div class="stat-card stat-card-{{ item.color or stat_colors[loop.index0 % 4] }}">
+                <span class="stat-value">{{ item.value }}</span>
+                <span class="stat-label">{{ t(stat_keys[loop.index0]) if loop.index0 < stat_keys|length else item.label }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </section>
+
+  {% elif widget.widget_type == 'testimonials' %}
+    <section class="section testimonials-section">
+      <div class="container">
+        <h2 class="section-title">{{ widget.title }}</h2>
+        <div class="testimonials-scroll">
+          <div class="testimonials-grid">
+            {% for item in data.get('items', []) %}
+              <blockquote class="testimonial-card">
+                <p>"{{ item.text }}"</p>
+                <cite>— {{ item.author }}</cite>
+              </blockquote>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </section>
+
+  {% elif widget.widget_type == 'faq' %}
+    <section class="section faq-section faq-section-v2" id="sss">
+      <div class="container container-narrow">
+        <h2 class="faq-section-title">{{ t('faq.title') }}</h2>
+        <div class="faq-list faq-list-v2">
+          {% for item in data.get('items', []) %}
+            <details class="faq-item faq-item-v2">
+              <summary>{{ item.q }}</summary>
+              <p>{{ item.a }}</p>
+            </details>
+          {% endfor %}
+        </div>
+        <div class="faq-section-cta">
+          <a href="{{ url_for('contact') }}" class="btn btn-dark faq-view-all">{{ t('faq.view_all') }}</a>
+        </div>
+      </div>
+    </section>
+
+  {% elif widget.widget_type == 'cta' %}
+    <section class="section cta-section">
+      <div class="container">
+        <div class="cta-box">
+          <h2>{{ widget.title }}</h2>
+          <p>{{ data.get('text', '') }}</p>
+          {% if data.get('button_link') %}
+            <a href="{{ data.button_link }}" class="btn btn-white">{{ data.get('button_text', 'Devam') }}</a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+  {% elif widget.widget_type == 'hours' %}
+    <section class="section hours-section">
+      <div class="container container-narrow">
+        <h2 class="section-title">{{ widget.title }}</h2>
+        <ul class="hours-list">
+          {% for item in data.get('items', []) %}
+            <li><span>{{ item.day }}</span><span>{{ item.hours }}</span></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+
+  {% elif widget.widget_type == 'social' %}
+    <section class="section social-section social-footer-band">
+      <div class="container">
+        <h2 class="section-title">{{ widget.title }}</h2>
+        <div class="social-grid">
+          {% for item in data.get('items', []) %}
+            <a href="{{ item.url }}" class="social-card social-{{ item.platform }}" target="_blank" rel="noopener noreferrer">
+              <span class="social-icon">{{ social_icon(item.platform) }}</span>
+              <span class="social-label">{{ item.label or item.platform|title }}</span>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+  {% elif widget.widget_type == 'text' %}
+    <section class="section text-section">
+      <div class="container container-narrow">
+        {% if widget.title %}<h2 class="section-title">{{ widget.title }}</h2>{% endif %}
+        <div class="prose">{{ data.get('html', widget.content) | safe }}</div>
+      </div>
+    </section>
+  {% endif %}
+{% endmacro %}

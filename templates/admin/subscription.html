@@ -1,0 +1,154 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Abonelik Paketi{% endblock %}
+
+{% block content %}
+<div class="admin-page sub-page">
+  <header class="admin-header">
+    <div>
+      <h1>Abonelik Paketi</h1>
+      <p class="muted">Aktif paket modül erişimini belirler. Kilitli modüller menüde görünmez.</p>
+    </div>
+  </header>
+
+  {% if active_plan %}
+  <div class="admin-card sub-active-banner">
+    <strong>Aktif paket:</strong> {{ active_plan.label }}
+    <span class="badge badge-role">{{ active_plan.id }}</span>
+    <span class="muted">— {{ active_plan.limits.therapists if active_plan.limits.therapists < 999 else '∞' }} terapist · {{ active_plan.limits.branches if active_plan.limits.branches < 99 else '∞' }} şube</span>
+  </div>
+  {% endif %}
+
+  <form method="POST" class="sub-plan-form">
+    <div class="sub-plan-grid">
+      {% for plan in plans %}
+      <label class="sub-plan-card{% if current_plan_id == plan.id %} is-selected{% endif %}">
+        <input type="radio" name="plan_id" value="{{ plan.id }}"{% if current_plan_id == plan.id %} checked{% endif %}>
+        <div class="sub-plan-inner">
+          <h3>{{ plan.label }}</h3>
+          <p class="sub-plan-tag">{{ plan.tagline }}</p>
+          <div class="sub-plan-prices">
+            <span>Kurulum: <strong>{{ plan.setup_display }}</strong></span>
+            <span>Aylık: <strong>{{ plan.monthly_display }}</strong></span>
+          </div>
+          <ul class="sub-module-list">
+            {% for mod in plan.modules_sorted %}
+            <li>{{ module_labels.get(mod, mod) }}</li>
+            {% endfor %}
+          </ul>
+          {% if plan.features_excluded %}
+          <p class="sub-excluded muted">Pakette yok: {{ plan.features_excluded|join(', ') }}</p>
+          {% endif %}
+        </div>
+      </label>
+      {% endfor %}
+    </div>
+    <div class="sub-form-actions">
+      <button type="submit" class="btn btn-primary">Paketi Kaydet</button>
+      <a href="{{ url_for('admin_commercial_profile') }}" class="btn btn-outline">Ticari profil & dokümanlar</a>
+      <a href="{{ url_for('admin_commercial_doc', doc='teklif', plan=current_plan_id) }}" target="_blank" rel="noopener" class="btn btn-ghost">Teklif oluştur ↗</a>
+    </div>
+  </form>
+</div>
+
+<style>
+.sub-active-banner { display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem; padding:0.85rem 1rem; margin-bottom:1rem; }
+.sub-plan-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+.sub-plan-card { cursor:pointer; }
+.sub-plan-card input { position:absolute; opacity:0; pointer-events:none; }
+.sub-plan-inner { border:2px solid #e2e8f0; border-radius:14px; padding:1rem; height:100%; transition:border-color 0.15s, box-shadow 0.15s; }
+.sub-plan-card.is-selected .sub-plan-inner { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.12); }
+.sub-plan-inner h3 { margin:0 0 0.25rem; font-size:0.95rem; }
+.sub-plan-tag { margin:0 0 0.65rem; font-size:0.78rem; color:#64748b; }
+.sub-plan-prices { display:flex; flex-direction:column; gap:0.2rem; font-size:0.78rem; margin-bottom:0.65rem; }
+.sub-module-list { margin:0; padding-left:1.1rem; font-size:0.72rem; color:#475569; columns:2; column-gap:1rem; }
+.sub-excluded { font-size:0.72rem; margin:0.65rem 0 0; }
+.sub-form-actions { display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1.25rem; }
+.sub-doc-list { margin:0; padding-left:1.25rem; font-size:0.86rem; line-height:1.7; }
+@media (max-width:900px) { .sub-plan-grid { grid-template-columns:1fr; } .sub-module-list { columns:1; } }
+</style>
+{% endblock %}
+{% extends 'admin/base.html' %}
+
+{% block title %}Abonelik Paketi{% endblock %}
+
+{% block content %}
+<div class="admin-page sub-page">
+  <header class="admin-header">
+    <div>
+      <h1>Abonelik Paketi</h1>
+      <p class="muted">Aktif paket modül erişimini belirler. Kilitli modüller menüde görünmez.</p>
+    </div>
+  </header>
+
+  {% if active_plan %}
+  <div class="admin-card sub-active-banner">
+    <strong>Aktif paket:</strong> {{ active_plan.label }}
+    <span class="badge badge-role">{{ active_plan.id }}</span>
+    <span class="muted">— {{ active_plan.limits.therapists if active_plan.limits.therapists < 999 else '∞' }} terapist · {{ active_plan.limits.branches if active_plan.limits.branches < 99 else '∞' }} şube</span>
+  </div>
+  {% endif %}
+
+  <form method="POST" class="sub-plan-form">
+    <div class="sub-plan-grid">
+      {% for plan in plans %}
+      <label class="sub-plan-card{% if current_plan_id == plan.id %} is-selected{% endif %}">
+        <input type="radio" name="plan_id" value="{{ plan.id }}"{% if current_plan_id == plan.id %} checked{% endif %}>
+        <div class="sub-plan-inner">
+          <h3>{{ plan.label }}</h3>
+          <p class="sub-plan-tag">{{ plan.tagline }}</p>
+          <div class="sub-plan-prices">
+            <span>Kurulum: <strong>{{ plan.setup_display }}</strong></span>
+            <span>Aylık: <strong>{{ plan.monthly_display }}</strong></span>
+          </div>
+          <ul class="sub-module-list">
+            {% for mod in plan.modules_sorted %}
+            <li>{{ module_labels.get(mod, mod) }}</li>
+            {% endfor %}
+          </ul>
+          {% if plan.features_excluded %}
+          <p class="sub-excluded muted">Pakette yok: {{ plan.features_excluded|join(', ') }}</p>
+          {% endif %}
+        </div>
+      </label>
+      {% endfor %}
+    </div>
+    <div class="sub-form-actions">
+      <button type="submit" class="btn btn-primary">Paketi Kaydet</button>
+      <a href="{{ url_for('admin_commercial_profile') }}" class="btn btn-outline">Ticari profil & dokümanlar</a>
+      <a href="{{ url_for('admin_commercial_doc', doc='teklif', plan=current_plan_id) }}" target="_blank" rel="noopener" class="btn btn-ghost">Teklif oluştur ↗</a>
+    </div>
+  </form>
+</div>
+
+<style>
+    </div>
+  </form>
+
+  <section class="admin-card" style="margin-top:1.5rem;">
+    <h2 style="font-size:1rem;margin:0 0 0.75rem;">Ticari dokümanlar</h2>
+    <ul class="sub-doc-list">
+      <li><code>docs/commercial/teklif-sablonu.md</code> — Müşteri teklif formu</li>
+      <li><code>docs/commercial/teklif-sablonu.html</code> — Yazdırılabilir PDF teklif</li>
+      <li><code>docs/commercial/sozlesme-maddeleri.md</code> — KVKK, SLA, iptal maddeleri</li>
+    </ul>
+  </section>
+</div>
+
+<style>
+.sub-active-banner { display:flex; flex-wrap:wrap; align-items:center; gap:0.5rem; padding:0.85rem 1rem; margin-bottom:1rem; }
+.sub-plan-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+.sub-plan-card { cursor:pointer; }
+.sub-plan-card input { position:absolute; opacity:0; pointer-events:none; }
+.sub-plan-inner { border:2px solid #e2e8f0; border-radius:14px; padding:1rem; height:100%; transition:border-color 0.15s, box-shadow 0.15s; }
+.sub-plan-card.is-selected .sub-plan-inner { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,0.12); }
+.sub-plan-inner h3 { margin:0 0 0.25rem; font-size:0.95rem; }
+.sub-plan-tag { margin:0 0 0.65rem; font-size:0.78rem; color:#64748b; }
+.sub-plan-prices { display:flex; flex-direction:column; gap:0.2rem; font-size:0.78rem; margin-bottom:0.65rem; }
+.sub-module-list { margin:0; padding-left:1.1rem; font-size:0.72rem; color:#475569; columns:2; column-gap:1rem; }
+.sub-excluded { font-size:0.72rem; margin:0.65rem 0 0; }
+.sub-form-actions { display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1.25rem; }
+.sub-doc-list { margin:0; padding-left:1.25rem; font-size:0.86rem; line-height:1.7; }
+@media (max-width:900px) { .sub-plan-grid { grid-template-columns:1fr; } .sub-module-list { columns:1; } }
+</style>
+{% endblock %}

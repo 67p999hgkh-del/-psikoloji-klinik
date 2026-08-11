@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin{% endblock %} — {{ site_name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"></noscript>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-base.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-mobile.css') }}?v={{ static_v|default('20260807q') }}">
+</head>
+<body class="admin-body">
+  {% if current_user %}
+    <aside class="admin-sidebar">
+      <div class="admin-brand">
+        <span class="admin-brand-mark" aria-hidden="true">P</span>
+        <div class="admin-brand-text">
+          <span class="admin-brand-title">Yönetim Paneli</span>
+          <span class="admin-brand-sub">{{ site_name }}</span>
+        </div>
+      </div>
+      <div class="admin-user-info">
+        <strong>{{ session.username }}</strong>
+        <span class="badge badge-role badge-role-{{ current_user.role }}">{{ current_user.role_label }}</span>
+      </div>
+      <nav>
+        {% if can('dashboard') or can('analiz') %}
+          <p class="admin-nav-title">Genel</p>
+          {% if can('dashboard') %}
+            <a href="{{ url_for('admin_dashboard') }}" class="{% if request.endpoint == 'admin_dashboard' %}active{% endif %}">Dashboard</a>
+          {% endif %}
+          {% if can('analiz') %}
+            <a href="{{ url_for('admin_analiz') }}" class="{% if request.endpoint == 'admin_analiz' %}active{% endif %}">PsikoPlan Analiz</a>
+          {% endif %}
+        {% endif %}
+
+        {% if can('appointments') or can('sessions') or can('invoices') or can('therapists') %}
+          <p class="admin-nav-title">Klinik</p>
+          {% if can('appointments') %}
+            <a href="{{ url_for('admin_appointments') }}" class="{% if 'appointment' in request.endpoint %}active{% endif %}">Randevular</a>
+          {% endif %}
+          {% if can('sessions') %}
+            <a href="{{ url_for('admin_sessions') }}" class="{% if request.endpoint in ['admin_sessions', 'admin_session_new', 'admin_note_new'] %}active{% endif %}">Seanslar</a>
+          {% endif %}
+          {% if can('invoices') %}
+            <a href="{{ url_for('admin_invoices') }}" class="{% if request.endpoint in ['admin_invoices', 'admin_invoice_new'] %}active{% endif %}">Faturalar</a>
+          {% endif %}
+          {% if can('therapists') %}
+            <a href="{{ url_for('admin_therapists') }}" class="{% if 'therapist' in request.endpoint and 'user' not in request.endpoint %}active{% endif %}">Terapistler</a>
+          {% endif %}
+        {% endif %}
+
+        {% if can('blog') or can('sliders') or can('widgets') or can('tests') %}
+          <p class="admin-nav-title">İçerik</p>
+          {% if can('blog') %}
+            <a href="{{ url_for('admin_blog') }}" class="{% if 'blog' in request.endpoint %}active{% endif %}">Blog</a>
+          {% endif %}
+          {% if can('sliders') %}
+            <a href="{{ url_for('admin_sliders') }}" class="{% if 'slider' in request.endpoint %}active{% endif %}">Slider</a>
+          {% endif %}
+          {% if can('widgets') %}
+            <a href="{{ url_for('admin_widgets') }}" class="{% if 'widget' in request.endpoint %}active{% endif %}">Widgetlar</a>
+          {% endif %}
+          {% if can('tests') %}
+            <a href="{{ url_for('admin_tests') }}" class="{% if request.endpoint in ['admin_tests', 'admin_test_toggle'] %}active{% endif %}">Testler</a>
+          {% endif %}
+        {% endif %}
+
+        {% if can('theme') or can('email') or can('users') %}
+          <p class="admin-nav-title">Ayarlar</p>
+          {% if can('theme') %}
+            <a href="{{ url_for('admin_theme') }}" class="{% if request.endpoint == 'admin_theme' %}active{% endif %}">Tema & Logo</a>
+          {% endif %}
+          {% if can('email') %}
+            <a href="{{ url_for('admin_email_settings') }}" class="{% if request.endpoint == 'admin_email_settings' %}active{% endif %}">E-posta</a>
+          {% endif %}
+          {% if can('users') %}
+            <a href="{{ url_for('admin_users') }}" class="{% if request.endpoint in ['admin_users', 'admin_user_add', 'admin_user_edit', 'admin_user_delete'] %}active{% endif %}">Kullanıcılar</a>
+          {% endif %}
+        {% endif %}
+
+        {% if current_user.role == 'admin' %}
+          <p class="admin-nav-title">Ticari</p>
+          <a href="{{ url_for('admin_subscription') }}" class="{% if request.endpoint == 'admin_subscription' %}active{% endif %}">Abonelik Paketi</a>
+          <a href="{{ url_for('admin_commercial_profile') }}" class="{% if request.endpoint in ['admin_commercial_profile', 'admin_commercial_doc'] %}active{% endif %}">Ticari Profil</a>
+        {% endif %}
+
+        <p class="admin-nav-title">Sistem</p>
+        {% if can('audit') %}
+          <a href="{{ url_for('admin_audit_logs') }}" class="{% if request.endpoint == 'admin_audit_logs' %}active{% endif %}">Loglar</a>
+        {% endif %}
+        <a href="{{ url_for('home') }}" target="_blank" class="admin-nav-secondary">Siteyi Gör</a>
+        <a href="{{ url_for('admin_logout') }}" class="admin-nav-secondary admin-nav-logout">Çıkış</a>
+      </nav>
+    </aside>
+  {% endif %}
+
+  <div class="admin-main">
+    {% if current_user %}
+      <header class="admin-topbar">
+        <nav class="admin-breadcrumb" aria-label="Konum">
+          <span>Yönetim Paneli</span>
+          <span class="admin-breadcrumb-sep">/</span>
+          <strong>{{ self.title() }}</strong>
+        </nav>
+        <div class="admin-topbar-right">
+          <a href="{{ url_for('home') }}" target="_blank" class="topbar-link">Siteyi Gör ↗</a>
+          <div class="topbar-user">
+            <span class="topbar-avatar">{{ session.username[:2]|upper }}</span>
+            <span class="topbar-user-text">
+              <strong>{{ session.username }}</strong>
+              <small>{{ current_user.role_label }}</small>
+            </span>
+          </div>
+          <a href="{{ url_for('admin_logout') }}" class="topbar-logout" title="Çıkış">Çıkış</a>
+        </div>
+      </header>
+    {% endif %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container" id="adminFlashContainer">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}" role="status">
+              <span>{{ message }}</span>
+              <button type="button" class="flash-close" aria-label="Kapat">&times;</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.admin-main .flash').forEach((flash) => {
+        const dismiss = () => {
+          flash.style.opacity = '0';
+          flash.style.transform = 'translateX(100%)';
+          flash.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          setTimeout(() => {
+            flash.remove();
+            const container = document.getElementById('adminFlashContainer');
+            if (container && !container.querySelector('.flash')) container.remove();
+          }, 300);
+        };
+        flash.querySelector('.flash-close')?.addEventListener('click', dismiss);
+        setTimeout(dismiss, 4000);
+      });
+    });
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

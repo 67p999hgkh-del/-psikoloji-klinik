@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="section client-portal-section">
+  <div class="container">
+    <div class="client-portal-header">
+      <div>
+        <h1>Danışan Paneli</h1>
+        <p>{{ profile.full_name if profile else session.username }}</p>
+      </div>
+      <a href="{{ url_for('client_logout') }}" class="btn btn-outline btn-sm">Çıkış</a>
+    </div>
+
+    <div class="client-portal-grid">
+      <article class="client-panel">
+        <h2>Randevularım</h2>
+        {% for a in appointments %}
+          <div class="client-item">
+            <strong>{{ a.appointment_date.strftime('%d.%m.%Y') }} {{ a.appointment_time.strftime('%H:%M') }}</strong>
+            <span>{{ a.therapist.name }} · {{ a.STATUS_LABELS.get(a.status, a.status) }}</span>
+          </div>
+        {% else %}
+          <p class="muted">Henüz randevu yok.</p>
+        {% endfor %}
+      </article>
+
+      <article class="client-panel">
+        <h2>Test Sonuçlarım</h2>
+        {% for t in tests %}
+          <div class="client-item">
+            <strong>{{ t.test.title if t.test else 'Test' }}</strong>
+            <span>{{ t.created_at.strftime('%d.%m.%Y') }} · {{ t.level or ('Skor: ' ~ t.score) }}</span>
+            {% if t.summary %}<p>{{ t.summary[:160] }}{% if t.summary|length > 160 %}…{% endif %}</p>{% endif %}
+          </div>
+        {% else %}
+          <p class="muted">Kayıtlı test sonucu yok. Üye girişi yapıp test çözdüğünüzde burada görünür.</p>
+        {% endfor %}
+      </article>
+
+      <article class="client-panel">
+        <h2>Terapist Notları</h2>
+        {% for n in notes %}
+          <div class="client-item">
+            <strong>{{ n.therapist.name if n.therapist else 'Terapist' }}</strong>
+            <span>{{ n.created_at.strftime('%d.%m.%Y') }}</span>
+            <p>{{ n.body }}</p>
+          </div>
+        {% else %}
+          <p class="muted">Paylaşılan not yok.</p>
+        {% endfor %}
+      </article>
+
+      <article class="client-panel">
+        <h2>Faturalarım</h2>
+        {% for inv in invoices %}
+          <div class="client-item">
+            <strong>{{ '%.2f'|format(inv.amount) }} {{ inv.currency }}</strong>
+            <span>{{ inv.invoice_date.strftime('%d.%m.%Y') }} · {{ inv.STATUS_LABELS.get(inv.status, inv.status) }}</span>
+            <p>{{ inv.description }}</p>
+          </div>
+        {% else %}
+          <p class="muted">Fatura kaydı yok.</p>
+        {% endfor %}
+      </article>
+    </div>
+  </div>
+</section>
+{% endblock %}

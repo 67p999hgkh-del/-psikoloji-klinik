@@ -1,0 +1,352 @@
+{% extends 'admin/base.html' %}
+{% block title %}PsikoPlan Analiz{% endblock %}
+
+{% block content %}
+<div class="admin-page psikoplan-page">
+  <div class="psikoplan-hero">
+    <div>
+      <span class="psikoplan-badge">PsikoPlan AI</span>
+      <h1>Akıllı Analiz Paneli</h1>
+      <p>{{ data.month_label }} — randevu, seans, üyelik, test ve fatura verileri tek ekranda.</p>
+    </div>
+    <form class="analiz-month-filter" method="get">
+      <label>Ay
+        <select name="month">
+          {% for num, name in data.months %}
+            <option value="{{ num }}" {% if data.month == num %}selected{% endif %}>{{ name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Yıl
+        <input type="number" name="year" value="{{ data.year }}" min="2020" max="2100">
+      </label>
+      <button type="submit" class="btn btn-primary btn-sm">Göster</button>
+    </form>
+  </div>
+
+  <div class="kpi-grid">
+    {% for kpi in data.kpis %}
+      <a class="kpi-card" href="{{ kpi.href }}">
+        <span class="kpi-icon">{{ kpi.icon }}</span>
+        <span class="kpi-label">{{ kpi.label }}</span>
+        <strong class="kpi-value">{{ kpi.value }}</strong>
+        <small class="kpi-sub">{{ kpi.sub }}</small>
+      </a>
+    {% endfor %}
+  </div>
+
+  <section class="admin-card health-card">
+    <div class="admin-card-header">
+      <h2>Sistem Bütünlüğü</h2>
+      {% if data.sync_needed %}
+        <form method="post" action="{{ url_for('admin_analiz_sync', year=data.year, month=data.month) }}">
+          <button type="submit" class="btn btn-sm btn-primary">🔗 Kayıtları eşitle ({{ data.sync_needed }})</button>
+        </form>
+      {% else %}
+        <span class="muted">Tüm modüller bağlı</span>
+      {% endif %}
+    </div>
+    <ul class="health-list">
+      {% for item in data.health %}
+        <li class="health-item health-{{ item.tone }}">
+          <span>{{ '✅' if item.tone == 'ok' else '⚠️' }} {{ item.text }}</span>
+          <a href="{{ item.href }}" class="btn btn-sm btn-outline">{{ item.action }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <div class="analiz-chart-row">
+    <section class="admin-card">
+      <div class="admin-card-header">
+        <h2>6 Aylık Gelişim</h2>
+        <span class="muted">Randevu · Seans · Tahsilat</span>
+      </div>
+      <canvas id="trendChart" height="230"></canvas>
+    </section>
+
+    <section class="admin-card">
+      <div class="admin-card-header">
+        <h2>Randevu Durumu</h2>
+        <a href="{{ url_for('admin_appointments') }}" class="muted">Randevular →</a>
+      </div>
+      {% if data.status_chart.values %}
+        <canvas id="statusChart" height="230"></canvas>
+      {% else %}
+        <p class="muted">Bu ay randevu kaydı yok.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <div class="analiz-chart-row">
+    <section class="admin-card">
+      <div class="admin-card-header">
+        <h2>Başvuru Nedeni Dağılımı</h2>
+        <a href="{{ url_for('admin_session_new') }}" class="muted">Seans kaydı aç →</a>
+      </div>
+      {% if data.reason_stats %}
+        <div class="analiz-summary">
+          <div><strong>Toplam Seans</strong><span>{{ data.total_sessions }}</span></div>
+          {% if data.top_reason %}
+            <div><strong>En Sık Neden</strong><span>{{ data.top_reason.label }} · %{{ data.top_reason.pct }}</span></div>
+          {% endif %}
+          {% if data.second_reason %}
+            <div><strong>İkinci Sıra</strong><span>{{ data.second_reason.label }} · %{{ data.second_reason.pct }}</span></div>
+          {% endif %}
+        </div>
+        <canvas id="reasonChart" height="240"></canvas>
+      {% else %}
+        <div class="analiz-empty">
+          <p>Bu ay seans kaydı yok, bu yüzden başvuru nedeni analizi boş.</p>
+          <a href="{{ url_for('admin_session_new') }}" class="btn btn-sm btn-primary">İlk seans kaydını aç</a>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="admin-card">
+      <div class="admin-card-header">
+        <h2>Seans Türü</h2>
+        <span class="muted">Online / Yüz yüze</span>
+      </div>
+      {% if data.type_chart.values %}
+        <canvas id="typeChart" height="230"></canvas>
+      {% else %}
+        <p class="muted">Bu ay randevu kaydı yok.</p>
+      {% endif %}
+      <div class="revenue-mini">
+        <div><span>Tahsil edilen</span><strong>{{ '%.0f'|format(data.revenue.paid) }} ₺</strong></div>
+        <div><span>Bekleyen</span><strong>{{ '%.0f'|format(data.revenue.pending) }} ₺</strong></div>
+        <div><span>Fatura</span><strong>{{ data.revenue.count }}</strong></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="admin-card">
+    <div class="admin-card-header">
+      <h2>Şube (Şehir) Bazlı Analiz</h2>
+      <a href="{{ url_for('admin_therapists') }}" class="muted">Terapistler →</a>
+    </div>
+    {% if data.branch_cards %}
+      <div class="branch-cards">
+        {% for branch in data.branch_cards %}
+          <article class="branch-card">
+            <h3>{{ branch.city }}</h3>
+            <div class="branch-metrics">
+              <span>{{ branch.appointments }} randevu</span>
+              <span>{{ branch.sessions }} seans</span>
+              <span>{{ '%.0f'|format(branch.revenue) }} ₺</span>
+            </div>
+            {% if branch.top %}
+              <p class="muted">
+                {% for item in branch.top %}{{ item.label }} %{{ item.pct }}{% if not loop.last %} · {% endif %}{% endfor %}
+              </p>
+            {% else %}
+              <p class="muted">Başvuru nedeni verisi yok.</p>
+            {% endif %}
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">Bu ay için şehir verisi yok.</p>
+    {% endif %}
+  </section>
+
+  <section class="admin-card">
+    <div class="admin-card-header">
+      <h2>Terapist Performansı</h2>
+      <a href="{{ url_for('admin_sessions') }}" class="muted">Seanslar →</a>
+    </div>
+    {% if data.therapist_cards %}
+      <div class="therapist-analiz-grid">
+        {% for card in data.therapist_cards %}
+          <article class="therapist-analiz-card">
+            <header class="therapist-card-head">
+              <h3>{{ card.name }}</h3>
+              {% if card.city %}<span class="chip-soft">{{ card.city }}</span>{% endif %}
+            </header>
+            <div class="branch-metrics">
+              <span>{{ card.appointments }} randevu</span>
+              <span>{{ card.sessions }} seans</span>
+              <span>%{{ card.completion_pct }} tamamlanma</span>
+              <span>{{ '%.0f'|format(card.revenue) }} ₺</span>
+            </div>
+            {% for item in card.reasons %}
+              <div class="bar-row">
+                <span>{{ item.label }}</span>
+                <div class="bar-track"><div class="bar-fill" style="width:{{ item.pct }}%"></div></div>
+                <strong>%{{ item.pct }}</strong>
+              </div>
+            {% else %}
+              <p class="muted">Seans kaydı girildiğinde başvuru dağılımı burada görünür.</p>
+            {% endfor %}
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">Bu ay terapist hareketi yok.</p>
+    {% endif %}
+  </section>
+
+  <div class="analiz-chart-row">
+    <section class="admin-card">
+      <div class="admin-card-header">
+        <h2>Test Sonuçları</h2>
+        <a href="{{ url_for('admin_tests') }}" class="muted">Testler →</a>
+      </div>
+      {% if data.test_stats %}
+        <table class="admin-table compact-table">
+          <thead>
+            <tr><th>Test</th><th>Çözüm</th><th>Ort. Puan</th><th>Baskın Düzey</th></tr>
+          </thead>
+          <tbody>
+            {% for t in data.test_stats %}
+              <tr>
+                <td>{{ t.title }}</td>
+                <td>{{ t.count }}</td>
+                <td>{{ t.avg_score }}</td>
+                <td>{{ t.top_level }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="muted">Bu ay test çözümü yok.</p>
+      {% endif %}
+    </section>
+
+    <section class="admin-card">
+      <div class="admin-card-header">
+        <h2>Son Hareketler</h2>
+        <span class="muted">Tüm modüller</span>
+      </div>
+      {% if data.recent_activity %}
+        <ul class="activity-list">
+          {% for item in data.recent_activity %}
+            <li>
+              <a href="{{ item.href }}">
+                <span class="activity-icon">{{ item.icon }}</span>
+                <span class="activity-text">
+                  <strong>{{ item.title }}</strong>
+                  <small>{{ item.meta }}</small>
+                </span>
+                {% if item.when %}<time>{{ item.when.strftime('%d.%m %H:%M') }}</time>{% endif %}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="muted">Bu ay kayıtlı hareket yok.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <section class="admin-card content-tip-card">
+    <div class="admin-card-header">
+      <h2>İçerik Öneri Paneli</h2>
+      <span class="muted">Veri → İçgörü → Aksiyon</span>
+    </div>
+    <p class="tip-alert">{{ '📈' if data.content_tip.has_data else 'ℹ️' }} {{ data.content_tip.message }}</p>
+    <div class="action-cards">
+      {% for action in data.content_tip.actions %}
+        <a class="action-card" href="{{ action.href }}">
+          <span class="action-icon">{{ action.icon }}</span>
+          <strong>{{ action.title }}</strong>
+          <p>{{ action.hint }}</p>
+          <span class="action-link">{{ action.action }} →</span>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="admin-card">
+    <div class="admin-card-header">
+      <h2>Başvuru Nedeni Kataloğu</h2>
+      <a href="{{ url_for('admin_session_new') }}" class="muted">Yeni seans kaydı →</a>
+    </div>
+    <p class="muted">Seans kaydında seçilen nedenler bu analizleri besler.</p>
+    <div class="reason-chip-cloud">
+      {% for reason in application_reasons %}
+        <span class="reason-chip">{{ reason }}</span>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  const analiz = {
+    reason: {{ data.chart|tojson }},
+    trend: {{ data.trend_chart|tojson }},
+    status: {{ data.status_chart|tojson }},
+    type: {{ data.type_chart|tojson }}
+  };
+
+  Chart.defaults.font.family = "'Montserrat', sans-serif";
+  Chart.defaults.color = '#475569';
+  const palette = ['#2563eb', '#06b6d4', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444'];
+
+  const trendEl = document.getElementById('trendChart');
+  if (trendEl) {
+    new Chart(trendEl, {
+      data: {
+        labels: analiz.trend.labels,
+        datasets: [
+          { type: 'bar', label: 'Randevu', data: analiz.trend.appointments, backgroundColor: '#2563eb', borderRadius: 6 },
+          { type: 'bar', label: 'Seans', data: analiz.trend.sessions, backgroundColor: '#06b6d4', borderRadius: 6 },
+          { type: 'line', label: 'Tahsilat (₺)', data: analiz.trend.revenue, borderColor: '#8b5cf6', backgroundColor: '#8b5cf6', tension: 0.35, yAxisID: 'y1' }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0 } },
+          y1: { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false } }
+        }
+      }
+    });
+  }
+
+  const reasonEl = document.getElementById('reasonChart');
+  if (reasonEl) {
+    new Chart(reasonEl, {
+      type: 'bar',
+      data: {
+        labels: analiz.reason.labels,
+        datasets: [{ data: analiz.reason.values, backgroundColor: '#2563eb', borderRadius: 8 }]
+      },
+      options: {
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: { x: { max: 100, ticks: { callback: v => v + '%' } } }
+      }
+    });
+  }
+
+  const statusEl = document.getElementById('statusChart');
+  if (statusEl) {
+    new Chart(statusEl, {
+      type: 'doughnut',
+      data: {
+        labels: analiz.status.labels,
+        datasets: [{ data: analiz.status.values, backgroundColor: palette, borderWidth: 0 }]
+      },
+      options: { cutout: '62%', plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+
+  const typeEl = document.getElementById('typeChart');
+  if (typeEl) {
+    new Chart(typeEl, {
+      type: 'doughnut',
+      data: {
+        labels: analiz.type.labels,
+        datasets: [{ data: analiz.type.values, backgroundColor: ['#2563eb', '#06b6d4'], borderWidth: 0 }]
+      },
+      options: { cutout: '62%', plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+</script>
+{% endblock %}

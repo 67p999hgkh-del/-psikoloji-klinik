@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% import 'partials/widgets.html' as widget_macros with context %}
+{% from 'partials/person_photo.html' import person_photo %}
+{% from 'partials/therapist_badges.html' import therapist_badges with context %}
+
+{% block content %}
+<div class="home-flow">
+  {% include 'partials/slider.html' %}
+
+  {% include 'partials/appointment_search_hero.html' %}
+
+  {% include 'partials/home_extras_split.html' %}
+
+  {% include 'partials/home_tests_carousel.html' %}
+
+  <section class="section blog-preview blog-preview-home blog-preview-gradient">
+    <div class="container">
+      <div class="section-header blog-preview-header">
+        <h2 class="section-title">{{ t('home.blog_title') }}</h2>
+        <a href="{{ url_for('blog_list') }}" class="link-arrow link-arrow-light">{{ t('home.blog_all') }}</a>
+      </div>
+
+      <div class="blog-carousel" data-blog-carousel>
+        <button type="button" class="blog-carousel-btn blog-carousel-prev" data-blog-prev aria-label="{{ t('blog.prev') }}">‹</button>
+        <div class="blog-carousel-viewport" data-blog-viewport>
+          <div class="blog-carousel-track">
+            {% for post in posts %}
+              <article class="blog-card blog-card-light blog-carousel-slide">
+                {% if post.featured_image %}
+                  <a href="{{ url_for('blog_detail', slug=post.slug) }}" class="blog-thumb" style="background-image:url('{{ post.featured_image }}')"></a>
+                {% endif %}
+                <div class="blog-meta">{{ post.created_at.strftime('%d.%m.%Y') }} · {{ post.category }}</div>
+                <h3><a href="{{ url_for('blog_detail', slug=post.slug) }}">{{ post.title }}</a></h3>
+                <p>{{ post.excerpt }}</p>
+                {% if post.tag_list() %}
+                  <div class="tag-list">
+                    {% for tag in post.tag_list()[:3] %}
+                      <span class="tag">{{ tag }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </article>
+            {% endfor %}
+          </div>
+        </div>
+        <button type="button" class="blog-carousel-btn blog-carousel-next" data-blog-next aria-label="{{ t('blog.next') }}">›</button>
+        <div class="blog-carousel-dots" data-blog-dots></div>
+      </div>
+    </div>
+  </section>
+
+  {% include 'partials/mind_care_cta.html' %}
+
+  <section class="section therapists-preview">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">{{ t('home.therapists_title') }}</h2>
+        <a href="{{ url_for('therapists_list') }}" class="link-arrow">{{ t('home.therapists_all') }}</a>
+      </div>
+      <div class="therapists-carousel" data-therapist-carousel>
+        <div class="therapists-carousel-viewport" data-therapist-viewport>
+          <div class="therapist-grid therapists-carousel-track">
+            {% for therapist in therapists %}
+              <article class="therapist-card therapist-carousel-slide">
+                {{ person_photo(therapist, '') }}
+                {{ therapist_badges(therapist) }}
+                <h3>{{ therapist.name }}</h3>
+                <p class="therapist-title">{{ therapist.title }}</p>
+                <p class="therapist-city">📍 {{ therapist.city or 'İstanbul' }}</p>
+                <p class="therapist-specialties">{{ therapist.specialties }}</p>
+                <div class="card-actions">
+                  <a href="{{ url_for('therapist_detail', slug=therapist.slug) }}" class="btn btn-outline btn-sm">{{ t('home.profile') }}</a>
+                  <a href="{{ url_for('appointment_page', slug=therapist.slug) }}" class="btn btn-primary btn-sm">{{ t('home.book') }}</a>
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="therapists-carousel-dots" data-therapist-dots></div>
+      </div>
+    </div>
+  </section>
+
+  {% for widget in widgets %}
+    {% if widget.widget_type not in ['hero'] %}
+      {{ widget_macros.render_widget(widget) }}
+    {% endif %}
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/slider.js') }}"></script>
+<script src="{{ url_for('static', filename='js/home.js') }}"></script>
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+{% endblock %}

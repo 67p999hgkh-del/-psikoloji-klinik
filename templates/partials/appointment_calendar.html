@@ -1,0 +1,32 @@
+{% macro appointment_calendar(therapist) %}
+<div class="calendar-booking" data-therapist-id="{{ therapist.id }}"
+     data-msg-empty="{{ tr('apt.no_slot') }}"
+     data-msg-selected="{{ tr('apt.selected_day') }}">
+  <h3>{{ tr('apt.calendar') }}</h3>
+  <p class="calendar-legend">
+    <span class="legend-item"><i class="dot available"></i> {{ tr('apt.legend_available') }}</span>
+    <span class="legend-item"><i class="dot partial"></i> {{ tr('apt.legend_partial') }}</span>
+    <span class="legend-item"><i class="dot full"></i> {{ tr('apt.legend_full') }}</span>
+    <span class="legend-item"><i class="dot closed"></i> {{ tr('apt.legend_closed') }}</span>
+  </p>
+
+  <div class="calendar-toolbar">
+    <button type="button" class="btn btn-outline btn-sm cal-prev">{{ tr('apt.prev') }}</button>
+    <strong class="cal-month-label"></strong>
+    <button type="button" class="btn btn-outline btn-sm cal-next">{{ tr('apt.next') }}</button>
+  </div>
+
+  <div class="calendar-grid cal-weekdays">
+    <span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span>
+  </div>
+  <div class="calendar-grid cal-days"></div>
+
+  <div class="time-slots-panel hidden">
+    <h4>{{ tr('apt.selected_day') }} <span class="selected-date-label"></span></h4>
+    <div class="time-slots"></div>
+  </div>
+
+  <input type="hidden" name="appointment_date" id="appointment_date" required>
+  <input type="hidden" name="appointment_time" id="appointment_time" required>
+</div>
+{% endmacro %}

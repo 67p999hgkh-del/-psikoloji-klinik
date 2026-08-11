@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% import 'partials/blog_sidebar.html' as blog_macros with context %}
+
+{% block content %}
+  <section class="page-hero page-hero-color page-hero-sm">
+    <div class="container">
+      <h1>{{ t('page.blog_title') }}</h1>
+      <p>{{ t('page.blog_sub') }}</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="blog-layout">
+        <div class="blog-main">
+          {% if featured and not active_category and not active_tag and (not pagination or pagination.page == 1) %}
+            <article class="blog-featured">
+              {% if featured.featured_image %}
+                <a href="{{ url_for('blog_detail', slug=featured.slug) }}" class="blog-featured-image" style="background-image:url('{{ featured.featured_image }}')"></a>
+              {% endif %}
+              <div class="blog-featured-body">
+                <span class="blog-category">{{ featured.category }}</span>
+                <h2><a href="{{ url_for('blog_detail', slug=featured.slug) }}">{{ featured.title }}</a></h2>
+                <p>{{ featured.excerpt }}</p>
+                <div class="blog-meta">{{ featured.created_at.strftime('%d.%m.%Y') }} · {{ featured.author }}</div>
+                {% if featured.tag_list() %}
+                  <div class="tag-list">
+                    {% for tag in featured.tag_list() %}
+                      <a href="{{ url_for('blog_by_tag', tag_slug=tag.lstrip('#').lower()) }}" class="tag">{{ tag }}</a>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+            </article>
+          {% endif %}
+
+          {% if active_category %}
+            <div class="blog-filter-label">{{ t('blog.filter_category') }} <strong>{{ active_category }}</strong></div>
+          {% elif active_tag %}
+            <div class="blog-filter-label">{{ t('blog.filter_tag') }} <strong>#{{ active_tag }}</strong></div>
+          {% endif %}
+
+          <div class="blog-posts-list">
+            {% for post in posts %}
+              {% if not featured or post.id != featured.id or active_category or active_tag or (pagination and pagination.page > 1) %}
+                <article class="blog-post-item">
+                  {% if post.featured_image %}
+                    <a href="{{ url_for('blog_detail', slug=post.slug) }}" class="blog-post-thumb" style="background-image:url('{{ post.featured_image }}')"></a>
+                  {% endif %}
+                  <div class="blog-post-body">
+                    <span class="blog-category">{{ post.category }}</span>
+                    <h2><a href="{{ url_for('blog_detail', slug=post.slug) }}">{{ post.title }}</a></h2>
+                    <p>{{ post.excerpt }}</p>
+                    <div class="blog-meta">{{ post.created_at.strftime('%d.%m.%Y') }} · {{ post.author }}</div>
+                    {% if post.tag_list() %}
+                      <div class="tag-list">
+                        {% for tag in post.tag_list() %}
+                          <a href="{{ url_for('blog_by_tag', tag_slug=tag.lstrip('#').lower()) }}" class="tag">{{ tag }}</a>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+                    <a href="{{ url_for('blog_detail', slug=post.slug) }}" class="link-arrow">{{ t('blog.read_more') }}</a>
+                  </div>
+                </article>
+              {% endif %}
+            {% else %}
+              <p class="empty-state">{{ t('blog.empty') }}</p>
+            {% endfor %}
+          </div>
+
+          {% if pagination and pagination.pages > 1 %}
+            <nav class="blog-pagination">
+              {% if pagination.has_prev %}
+                <a href="{{ url_for('blog_list', sayfa=pagination.prev_num, kategori=active_category) }}" class="btn btn-outline btn-sm">{{ t('blog.prev_page') }}</a>
+              {% endif %}
+              <span>{{ t('blog.page', current=pagination.page, total=pagination.pages) }}</span>
+              {% if pagination.has_next %}
+                <a href="{{ url_for('blog_list', sayfa=pagination.next_num, kategori=active_category) }}" class="btn btn-outline btn-sm">{{ t('blog.next_page') }}</a>
+              {% endif %}
+            </nav>
+          {% elif manual_total_pages and manual_total_pages > 1 %}
+            <nav class="blog-pagination">
+              {% if manual_page > 1 %}
+                <a href="{{ url_for('blog_by_tag', tag_slug=active_tag, sayfa=manual_page - 1) }}" class="btn btn-outline btn-sm">{{ t('blog.prev_page') }}</a>
+              {% endif %}
+              <span>{{ t('blog.page', current=manual_page, total=manual_total_pages) }}</span>
+              {% if manual_page < manual_total_pages %}
+                <a href="{{ url_for('blog_by_tag', tag_slug=active_tag, sayfa=manual_page + 1) }}" class="btn btn-outline btn-sm">{{ t('blog.next_page') }}</a>
+              {% endif %}
+            </nav>
+          {% endif %}
+        </div>
+
+        {{ blog_macros.blog_sidebar(sidebar_recent, sidebar_categories, sidebar_tags, active_category, active_tag) }}
+      </div>
+    </div>
+  </section>
+{% endblock %}

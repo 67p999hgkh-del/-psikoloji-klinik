@@ -1,0 +1,165 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Randevular{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <div>
+      <h1>Randevular</h1>
+      <p>{{ total }} kayıt listeleniyor{% if total_all != total %} · toplam {{ total_all }}{% endif %}</p>
+    </div>
+    <div class="admin-header-actions">
+      <a href="{{ url_for('admin_session_new') }}" class="btn btn-outline btn-sm">Seans kaydı aç</a>
+    </div>
+  </div>
+
+  <div class="summary-chips">
+    <a href="{{ url_for('admin_appointments', q=search, from=date_from, to=date_to, therapist_id=therapist_filter if not is_therapist_view else None) }}"
+       class="summary-chip {% if not status_filter %}active{% endif %}">
+      <span>Tümü</span><strong>{{ total_all }}</strong>
+    </a>
+    {% for key, label in status_labels.items() %}
+      <a href="{{ url_for('admin_appointments', status=key, q=search, from=date_from, to=date_to, therapist_id=therapist_filter if not is_therapist_view else None) }}"
+         class="summary-chip chip-{{ key }} {% if status_filter == key %}active{% endif %}">
+        <span>{{ label }}</span><strong>{{ status_counts.get(key, 0) }}</strong>
+      </a>
+    {% endfor %}
+  </div>
+
+  <form method="GET" class="filter-bar">
+    {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+    <div class="filter-field filter-grow">
+      <label for="q">Ara</label>
+      <input type="search" id="q" name="q" value="{{ search }}" placeholder="Ad, e-posta veya telefon">
+    </div>
+    {% if not is_therapist_view %}
+      <div class="filter-field">
+        <label for="therapist_id">Terapist</label>
+        <select id="therapist_id" name="therapist_id">
+          <option value="">Tümü</option>
+          {% for t in therapists %}
+            <option value="{{ t.id }}" {% if therapist_filter == t.id %}selected{% endif %}>{{ t.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    {% endif %}
+    <div class="filter-field">
+      <label for="from">Başlangıç</label>
+      <input type="date" id="from" name="from" value="{{ date_from }}">
+    </div>
+    <div class="filter-field">
+      <label for="to">Bitiş</label>
+      <input type="date" id="to" name="to" value="{{ date_to }}">
+    </div>
+    <div class="filter-actions">
+      <button type="submit" class="btn btn-sm btn-primary">Filtrele</button>
+      <a href="{{ url_for('admin_appointments') }}" class="btn btn-sm btn-ghost">Temizle</a>
+    </div>
+  </form>
+
+  <div class="admin-card">
+    <div class="admin-card-header">
+      <h2>
+        {% if status_filter %}{{ status_labels.get(status_filter) }} randevular{% else %}Tüm randevular{% endif %}
+      </h2>
+      <span class="muted">Sayfa {{ page }} / {{ pages }}</span>
+    </div>
+    <div class="table-wrap">
+      <table class="admin-table data-table">
+        <thead>
+          <tr>
+            <th>Danışan</th>
+            <th>İletişim</th>
+            {% if not is_therapist_view %}<th>Terapist</th>{% endif %}
+            <th>Tarih / Saat</th>
+            <th>Tür</th>
+            <th>Durum</th>
+            <th class="col-actions">İşlemler</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in appointments %}
+            {% set is_member = (a.patient_email or '')|lower in member_emails %}
+            <tr>
+              <td>
+                <div class="cell-person">
+                  <span class="avatar-initials">{{ a.patient_name[:2]|upper }}</span>
+                  <span class="cell-person-text">
+                    <strong>{{ a.patient_name }}</strong>
+                    <small>{% if is_member %}Üyelik var{% else %}Üyelik yok{% endif %}</small>
+                  </span>
+                </div>
+              </td>
+              <td>
+                <div class="cell-stack">
+                  <a href="mailto:{{ a.patient_email }}">{{ a.patient_email }}</a>
+                  <a href="tel:{{ a.patient_phone }}" class="muted-link">{{ a.patient_phone }}</a>
+                </div>
+              </td>
+              {% if not is_therapist_view %}
+                <td>
+                  <div class="cell-stack">
+                    <span>{{ a.therapist.name }}</span>
+                    {% if a.therapist.city %}<small class="muted">{{ a.therapist.city }}</small>{% endif %}
+                  </div>
+                </td>
+              {% endif %}
+              <td>
+                <div class="cell-stack">
+                  <strong>{{ a.appointment_date.strftime('%d.%m.%Y') }}</strong>
+                  <small class="muted">
+                    {{ a.appointment_time.strftime('%H:%M') }}
+                    {%- if a.appointment_date == today %} · Bugün{% elif a.appointment_date < today %} · Geçmiş{% endif %}
+                  </small>
+                </div>
+              </td>
+              <td>
+                <span class="pill pill-{{ 'online' if a.session_type == 'online' else 'inperson' }}">
+                  {{ a.SESSION_LABELS.get(a.session_type, a.session_type) }}
+                </span>
+              </td>
+              <td>
+                <form action="{{ url_for('admin_appointment_status', id=a.id) }}" method="POST">
+                  <select name="status" onchange="this.form.submit()" class="status-select badge-{{ a.status }}">
+                    {% for key, label in status_labels.items() %}
+                      <option value="{{ key }}" {% if a.status == key %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                </form>
+              </td>
+              <td class="col-actions">
+                <div class="actions">
+                  <a href="{{ url_for('admin_session_new', appointment_id=a.id) }}" class="btn btn-sm btn-outline">Seans</a>
+                  <form action="{{ url_for('admin_appointment_delete', id=a.id) }}" method="POST" onsubmit="return confirm('Randevuyu silmek istediğinize emin misiniz?')">
+                    <button type="submit" class="btn btn-sm btn-danger">Sil</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="{% if is_therapist_view %}6{% else %}7{% endif %}" class="empty">
+                <strong>Randevu bulunamadı</strong>
+                <span>Filtreleri değiştirin veya temizleyin.</span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if pages > 1 %}
+      <div class="table-pagination">
+        {% if page > 1 %}
+          <a href="{{ url_for('admin_appointments', page=page-1, status=status_filter, q=search, from=date_from, to=date_to, therapist_id=therapist_filter if not is_therapist_view else None) }}" class="btn btn-sm btn-ghost">← Önceki</a>
+        {% endif %}
+        <span class="muted">{{ page }} / {{ pages }}</span>
+        {% if page < pages %}
+          <a href="{{ url_for('admin_appointments', page=page+1, status=status_filter, q=search, from=date_from, to=date_to, therapist_id=therapist_filter if not is_therapist_view else None) }}" class="btn btn-sm btn-ghost">Sonraki →</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

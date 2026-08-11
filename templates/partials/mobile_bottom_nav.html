@@ -1,0 +1,18 @@
+<nav class="mobile-bottom-nav" aria-label="{{ t('nav.menu') }}">
+  <a href="{{ url_for('home') }}" class="mbn-link mbn-link-side {% if request.endpoint == 'home' %}active{% endif %}">
+    <span class="mbn-icon" aria-hidden="true">🏠</span>
+    <span class="mbn-label">{{ t('nav.home') }}</span>
+  </a>
+
+  <a href="{{ url_for('tests_list') }}" class="mbn-link mbn-link-featured {% if request.endpoint in ['tests_list', 'test_landing', 'test_take', 'test_result'] %}active{% endif %}">
+    <span class="mbn-featured-pill">
+      <span class="mbn-icon" aria-hidden="true">🧠</span>
+      <span class="mbn-label">{{ t('nav.start_test') }}</span>
+    </span>
+  </a>
+
+  <a href="{{ url_for('appointment_page') }}" class="mbn-link mbn-link-side {% if request.endpoint == 'appointment_page' %}active{% endif %}">
+    <span class="mbn-icon" aria-hidden="true">📅</span>
+    <span class="mbn-label">{{ t('nav.appointment') }}</span>
+  </a>
+</nav>

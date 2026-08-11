@@ -1,0 +1,31 @@
+<meta name="description" content="{{ seo_description|default(site_description) }}">
+<meta name="keywords" content="{{ seo_keywords|default(site_keywords) }}">
+<meta name="author" content="{{ site_name }}">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{ seo_url|default(request.url) }}">
+
+<meta property="og:type" content="{{ seo_type|default('website') }}">
+<meta property="og:title" content="{{ seo_title|default(site_name) }}">
+<meta property="og:description" content="{{ seo_description|default(site_description) }}">
+<meta property="og:url" content="{{ seo_url|default(request.url) }}">
+<meta property="og:site_name" content="{{ site_name }}">
+{% if seo_image %}
+<meta property="og:image" content="{{ seo_image }}">
+{% endif %}
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ seo_title|default(site_name) }}">
+<meta name="twitter:description" content="{{ seo_description|default(site_description) }}">
+{% if seo_image %}
+<meta name="twitter:image" content="{{ seo_image }}">
+{% endif %}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "{{ site_name }}",
+  "description": "{{ site_description }}",
+  "url": "{{ request.url_root.rstrip('/') }}"
+}
+</script>

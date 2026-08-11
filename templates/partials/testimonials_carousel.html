@@ -1,0 +1,18 @@
+<div class="testimonials-carousel" data-testimonials-carousel>
+  <div class="testimonials-track">
+    {% for item in testimonials %}
+      <article class="testimonial-slide">
+        <div class="testimonial-slide-header">
+          <div class="testimonial-avatar">{{ item.name[0] }}</div>
+          <div>
+            <strong>{{ item.name }}</strong>
+            <span class="testimonial-verified">✓ Doğrulandı</span>
+          </div>
+        </div>
+        <div class="testimonial-stars">★★★★★</div>
+        <p>{{ item.text }}</p>
+      </article>
+    {% endfor %}
+  </div>
+  <div class="testimonials-dots" data-testimonials-dots></div>
+</div>

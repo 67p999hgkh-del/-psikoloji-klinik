@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% from 'partials/appointment_calendar.html' import appointment_calendar with context %}
+{% from 'partials/person_photo.html' import person_photo %}
+{% from 'partials/therapist_badges.html' import therapist_badges, therapist_languages with context %}
+
+{% block content %}
+  <section class="page-hero page-hero-sm page-hero-color">
+    <div class="container">
+      <a href="{{ url_for('therapists_list') }}" class="back-link">{{ t('therapist.back') }}</a>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="therapist-profile">
+        <div class="therapist-profile-sidebar">
+          {{ person_photo(therapist, 'therapist-avatar-xl') }}
+          {{ therapist_badges(therapist) }}
+          <h1>{{ therapist.name }}</h1>
+          <p class="therapist-title">{{ therapist.title }}</p>
+          <p class="therapist-city">📍 {{ therapist.city or 'İstanbul' }}</p>
+          {{ therapist_languages(therapist) }}
+          <p class="therapist-specialties">{{ therapist.specialties }}</p>
+          <ul class="contact-list">
+            <li>✉️ {{ therapist.email }}</li>
+            <li>📞 {{ therapist.phone }}</li>
+          </ul>
+          <a href="#randevu" class="btn btn-primary btn-block">{{ t('therapist.calendar') }}</a>
+          <div class="privacy-badge-wrap">{% include 'partials/privacy_badge.html' %}</div>
+        </div>
+        <div class="therapist-profile-content">
+          <h2>{{ t('therapist.about') }}</h2>
+          <p>{{ therapist.bio }}</p>
+
+          <div class="appointment-layout appointment-layout-stack" id="randevu">
+            <div class="appointment-panel">
+              <h2>{{ t('therapist.calendar') }} — {{ therapist.name }}</h2>
+              <form action="{{ url_for('create_appointment') }}" method="POST" class="appointment-form" id="therapistAppointmentForm">
+                <input type="hidden" name="therapist_id" value="{{ therapist.id }}">
+                {{ appointment_calendar(therapist) }}
+
+                <div class="selected-slot-info" id="selectedSlotInfo">{{ t('apt.no_slot') }}</div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="patient_name">{{ t('apt.name') }}</label>
+                    <input type="text" id="patient_name" name="patient_name" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="patient_email">{{ t('apt.email') }}</label>
+                    <input type="email" id="patient_email" name="patient_email" required>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="patient_phone">{{ t('apt.phone') }}</label>
+                    <input type="tel" id="patient_phone" name="patient_phone" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="session_type">{{ t('apt.session_type') }}</label>
+                    <select id="session_type" name="session_type">
+                      <option value="yuz_yuze">{{ t('apt.in_person') }}</option>
+                      <option value="online">{{ t('apt.online') }}</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="notes">{{ t('apt.notes') }}</label>
+                  <textarea id="notes" name="notes" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>{{ t('apt.submit') }}</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+{% endblock %}

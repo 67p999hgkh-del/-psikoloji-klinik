@@ -1,0 +1,14 @@
+{% macro person_photo(person, size_class='') %}
+<div class="person-photo-wrap {{ size_class }}">
+  {% if person.photo and person.photo != 'default.jpg' %}
+    {% if person.photo.startswith('http') %}
+      <img src="{{ person.photo }}" alt="" class="person-photo {{ size_class }}" loading="lazy" onerror="this.parentElement.classList.add('no-photo')">
+    {% else %}
+      <img src="{{ url_for('static', filename=person.photo) }}" alt="" class="person-photo {{ size_class }}" loading="lazy" onerror="this.parentElement.classList.add('no-photo')">
+    {% endif %}
+  {% else %}
+    {% set _ = namespace(show_fallback=true) %}
+  {% endif %}
+  <div class="therapist-avatar {{ size_class }} person-photo-fallback" aria-hidden="true">{{ person.name[0] }}</div>
+</div>
+{% endmacro %}

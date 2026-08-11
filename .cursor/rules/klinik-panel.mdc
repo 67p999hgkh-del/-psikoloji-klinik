@@ -1,0 +1,24 @@
+---
+description: PsikoHukuk klinik paneli geliştirme kuralları
+alwaysApply: true
+---
+
+# PsikoHukuk Klinik Paneli
+
+Flask + SQLAlchemy + Jinja2 admin paneli. Hukuk/avukat özellikleri kaldırıldı; odak psikoloji kliniği.
+
+## Stack
+- `app.py` ana uygulama; ek klinik route'lar `routes_extra.py`
+- Modeller `models.py`; PsikoPlan/analiz `psikoplan.py`
+- Admin UI: `templates/admin/` + `static/css/admin.css`
+- DB: SQLite `instance/klinik.db` (ilk çalıştırmada seed)
+
+## Kurallar
+- Mevcut admin tasarım dilini (topbar, filter-bar, badge-soft, drawer) koru
+- Yeni admin sayfalarında `admin/base.html` extend et
+- Schema değişikliklerinde `helpers.migrate_schema` / `_add_column_if_missing` kullan
+- Gizli bilgileri commit etme; `.env.example` şablon yeterli
+- Admin giriş: `/admin/giris` (sonda `/` olan `/admin/` 404)
+
+## Devretme
+İlk kurulum için `CURSOR_DEVRET.md` dosyasına bak.

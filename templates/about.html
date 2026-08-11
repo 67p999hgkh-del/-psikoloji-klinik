@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ t('page.about_title') }} — {{ site_name }}{% endblock %}
+
+{% block content %}
+  <section class="page-hero page-hero-color">
+    <div class="container">
+      <h1>{{ t('page.about_title') }}</h1>
+      <p>{{ t('about.hero_sub') }}</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container container-narrow">
+      <div class="prose">
+        <p><strong>{{ site_name }}</strong> {{ t('about.intro1') }}</p>
+        <p>{{ t('about.intro2') }}</p>
+        <h2>{{ t('about.mission_title') }}</h2>
+        <p>{{ t('about.mission_text') }}</p>
+        <h2>{{ t('about.values_title') }}</h2>
+        <ul>
+          <li>{{ t('about.value1') }}</li>
+          <li>{{ t('about.value2') }}</li>
+          <li>{{ t('about.value3') }}</li>
+          <li>{{ t('about.value4') }}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+{% endblock %}

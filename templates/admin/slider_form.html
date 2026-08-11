@@ -1,0 +1,52 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}{% if slide %}Slider Düzenle{% else %}Slider Ekle{% endif %}{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>{% if slide %}Slide Düzenle{% else %}Yeni Slide{% endif %}</h1>
+    <a href="{{ url_for('admin_sliders') }}" class="btn btn-outline">← Geri</a>
+  </div>
+
+  <div class="admin-card">
+    <form method="POST" class="admin-form">
+      <div class="form-group">
+        <label>Başlık *</label>
+        <input type="text" name="title" value="{{ slide.title if slide else '' }}" required>
+      </div>
+      <div class="form-group">
+        <label>Alt Başlık</label>
+        <input type="text" name="subtitle" value="{{ slide.subtitle if slide else '' }}">
+      </div>
+      <div class="form-group">
+        <label>Görsel URL</label>
+        <input type="url" name="image_url" value="{{ slide.image_url if slide else '' }}" placeholder="https://...">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Buton Metni</label>
+          <input type="text" name="button_text" value="{{ slide.button_text if slide else '' }}">
+        </div>
+        <div class="form-group">
+          <label>Buton Linki</label>
+          <input type="text" name="button_link" value="{{ slide.button_link if slide else '' }}" placeholder="/randevu">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Sıra</label>
+          <input type="number" name="sort_order" value="{{ slide.sort_order if slide else 0 }}">
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" name="is_active" {% if not slide or slide.is_active %}checked{% endif %}>
+            Aktif
+          </label>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Kaydet</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

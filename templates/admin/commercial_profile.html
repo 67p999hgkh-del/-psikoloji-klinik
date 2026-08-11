@@ -1,0 +1,102 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Ticari Profil{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <header class="admin-header">
+    <div>
+      <h1>Ticari Profil & Dokümanlar</h1>
+      <p class="muted">Teklif ve sözleşme şablonlarında kullanılan şirket bilgileri.</p>
+    </div>
+  </header>
+
+  <div class="admin-card" style="padding:1rem;margin-bottom:1rem;">
+    <h2 style="font-size:1rem;margin:0 0 0.75rem;">Hizmet sağlayıcı bilgileri</h2>
+    <dl class="cp-grid">
+      <div><dt>Unvan</dt><dd>{{ company.legal_name }}</dd></div>
+      <div><dt>Marka</dt><dd>{{ company.brand_name }}</dd></div>
+      <div><dt>Adres</dt><dd>{{ company.address }}</dd></div>
+      <div><dt>Vergi Dairesi / No</dt><dd>{{ company.tax_office }} · {{ company.tax_number }}</dd></div>
+      <div><dt>MERSİS</dt><dd>{{ company.mersis }}</dd></div>
+      <div><dt>E-posta</dt><dd>{{ company.email }} · {{ company.sales_email }}</dd></div>
+      <div><dt>Telefon</dt><dd>{{ company.phone }}</dd></div>
+      <div><dt>Yetkili</dt><dd>{{ company.authorized_person }} — {{ company.authorized_title }}</dd></div>
+      <div><dt>Banka / IBAN</dt><dd>{{ company.bank_name }} · {{ company.bank_iban }}</dd></div>
+      <div><dt>Veri lokasyonu</dt><dd>{{ company.data_location }}</dd></div>
+    </dl>
+    <p class="muted" style="font-size:0.78rem;margin:0.75rem 0 0;">
+      Düzenlemek için <code>commercial_profile.py</code> dosyasını güncelleyin.
+    </p>
+  </div>
+
+  <div class="admin-card" style="padding:1rem;">
+    <h2 style="font-size:1rem;margin:0 0 0.75rem;">Dokümanlar</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+      <a href="{{ url_for('admin_commercial_doc', doc='teklif') }}" target="_blank" class="btn btn-primary btn-sm">Teklif formu (HTML/PDF)</a>
+      <a href="{{ url_for('admin_commercial_doc', doc='sozlesme') }}" target="_blank" class="btn btn-outline btn-sm">Sözleşme maddeleri</a>
+      <a href="{{ url_for('admin_commercial_doc', doc='teklif-md') }}" target="_blank" class="btn btn-ghost btn-sm">Teklif (Markdown)</a>
+      <a href="{{ url_for('pricing_page') }}" target="_blank" class="btn btn-ghost btn-sm">Fiyatlandırma sayfası ↗</a>
+    </div>
+  </div>
+</div>
+
+<style>
+.cp-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0.65rem 1.25rem; margin:0; }
+.cp-grid div { min-width:0; }
+.cp-grid dt { font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#64748b; margin-bottom:0.12rem; }
+.cp-grid dd { margin:0; font-size:0.86rem; color:#1e293b; }
+@media(max-width:720px){ .cp-grid { grid-template-columns:1fr; } }
+</style>
+{% endblock %}
+{% extends 'admin/base.html' %}
+
+{% block title %}Ticari Profil{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <header class="admin-header">
+    <div>
+      <h1>Ticari Profil & Dokümanlar</h1>
+      <p class="muted">Teklif ve sözleşme şablonlarında kullanılan şirket bilgileri.</p>
+    </div>
+  </header>
+
+  <div class="admin-card" style="padding:1rem;margin-bottom:1rem;">
+    <h2 style="font-size:1rem;margin:0 0 0.75rem;">Hizmet sağlayıcı bilgileri</h2>
+    <dl class="cp-grid">
+      <div><dt>Unvan</dt><dd>{{ company.legal_name }}</dd></div>
+      <div><dt>Marka</dt><dd>{{ company.brand_name }}</dd></div>
+      <div><dt>Adres</dt><dd>{{ company.address }}</dd></div>
+      <div><dt>Vergi Dairesi / No</dt><dd>{{ company.tax_office }} · {{ company.tax_number }}</dd></div>
+      <div><dt>MERSİS</dt><dd>{{ company.mersis }}</dd></div>
+      <div><dt>E-posta</dt><dd>{{ company.email }} · {{ company.sales_email }}</dd></div>
+      <div><dt>Telefon</dt><dd>{{ company.phone }}</dd></div>
+      <div><dt>Yetkili</dt><dd>{{ company.authorized_person }} — {{ company.authorized_title }}</dd></div>
+      <div><dt>Banka / IBAN</dt><dd>{{ company.bank_name }} · {{ company.bank_iban }}</dd></div>
+      <div><dt>Veri lokasyonu</dt><dd>{{ company.data_location }}</dd></div>
+    </dl>
+    <p class="muted" style="font-size:0.78rem;margin:0.75rem 0 0;">
+      Düzenlemek için <code>commercial_profile.py</code> dosyasını güncelleyin.
+    </p>
+  </div>
+
+  <div class="admin-card" style="padding:1rem;">
+    <h2 style="font-size:1rem;margin:0 0 0.75rem;">Dokümanlar</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+      <a href="{{ url_for('admin_commercial_doc', doc='teklif') }}" target="_blank" class="btn btn-primary btn-sm">Teklif formu (HTML/PDF)</a>
+      <a href="{{ url_for('admin_commercial_doc', doc='sozlesme') }}" target="_blank" class="btn btn-outline btn-sm">Sözleşme maddeleri</a>
+      <a href="{{ url_for('admin_commercial_doc', doc='teklif-md') }}" target="_blank" class="btn btn-ghost btn-sm">Teklif (Markdown)</a>
+      <a href="{{ url_for('pricing_page') }}" target="_blank" class="btn btn-ghost btn-sm">Fiyatlandırma sayfası ↗</a>
+    </div>
+  </div>
+</div>
+
+<style>
+.cp-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0.65rem 1.25rem; margin:0; }
+.cp-grid div { min-width:0; }
+.cp-grid dt { font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#64748b; margin-bottom:0.12rem; }
+.cp-grid dd { margin:0; font-size:0.86rem; color:#1e293b; }
+@media(max-width:720px){ .cp-grid { grid-template-columns:1fr; } }
+</style>
+{% endblock %}

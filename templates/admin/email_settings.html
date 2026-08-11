@@ -1,0 +1,58 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}E-posta Ayarları{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>E-posta Bildirimleri</h1>
+  </div>
+
+  <p class="admin-desc">
+    Randevu oluşturulduğunda danışana ve admin'e; onaylandığında danışana ve terapiste e-posta gönderilir.
+    SMTP bilgilerini Gmail, Outlook veya hosting sağlayıcınızdan alabilirsiniz.
+  </p>
+
+  <div class="admin-card">
+    <form method="POST" class="admin-form">
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" name="email_enabled" {% if settings.email_enabled %}checked{% endif %}>
+          E-posta bildirimlerini etkinleştir
+        </label>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>SMTP Sunucu</label>
+          <input type="text" name="smtp_host" value="{{ settings.smtp_host }}" placeholder="smtp.gmail.com">
+        </div>
+        <div class="form-group">
+          <label>SMTP Port</label>
+          <input type="number" name="smtp_port" value="{{ settings.smtp_port or 587 }}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>SMTP Kullanıcı</label>
+          <input type="text" name="smtp_user" value="{{ settings.smtp_user }}">
+        </div>
+        <div class="form-group">
+          <label>SMTP Şifre</label>
+          <input type="password" name="smtp_password" value="{{ settings.smtp_password }}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Gönderen Adres (From)</label>
+          <input type="email" name="smtp_from" value="{{ settings.smtp_from }}" placeholder="info@psikohukuk.com">
+        </div>
+        <div class="form-group">
+          <label>Admin Bildirim E-postası</label>
+          <input type="email" name="admin_email" value="{{ settings.admin_email }}">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Kaydet</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

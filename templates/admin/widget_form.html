@@ -1,0 +1,49 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}{% if widget %}Widget Düzenle{% else %}Widget Ekle{% endif %}{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>{% if widget %}Widget Düzenle{% else %}Yeni Widget{% endif %}</h1>
+    <a href="{{ url_for('admin_widgets') }}" class="btn btn-outline">← Geri</a>
+  </div>
+
+  <div class="admin-card">
+    <form method="POST" class="admin-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Widget Türü *</label>
+          <select name="widget_type" required>
+            {% for key, label in widget_types.items() %}
+              <option value="{{ key }}" {% if widget and widget.widget_type == key %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Sıra</label>
+          <input type="number" name="sort_order" value="{{ widget.sort_order if widget else 0 }}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Başlık *</label>
+        <input type="text" name="title" value="{{ widget.title if widget else '' }}" required>
+      </div>
+      <div class="form-group">
+        <label>İçerik (JSON) *</label>
+        <textarea name="content" rows="10" required class="code-input">{{ widget.content if widget else '' }}</textarea>
+        <small class="form-hint">
+          JSON formatında içerik girin. Örnek hero: {"subtitle": "...", "button_text": "...", "button_link": "/randevu"}
+        </small>
+      </div>
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" name="is_active" {% if not widget or widget.is_active %}checked{% endif %}>
+          Aktif
+        </label>
+      </div>
+      <button type="submit" class="btn btn-primary">Kaydet</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

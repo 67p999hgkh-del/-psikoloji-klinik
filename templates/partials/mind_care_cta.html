@@ -1,0 +1,23 @@
+<section class="section mind-care-cta">
+  <div class="container mind-care-inner">
+    <div class="mind-care-copy">
+      <h2>{{ t('home.mind_care_title') }}</h2>
+      <p>{{ t('home.mind_care_sub') }}</p>
+      <a href="{{ url_for('appointment_page') }}" class="btn btn-primary btn-lg">{{ t('home.book') }}</a>
+    </div>
+    <div class="mind-care-visual">
+      <div class="mind-care-circle">
+        <img
+          src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=560&h=560&fit=crop"
+          alt=""
+          class="mind-care-image"
+          loading="lazy"
+        >
+      </div>
+      <div class="mind-care-card">
+        <span class="hero-card-icon">💚</span>
+        <p>{{ t('widget.safe_env') }}</p>
+      </div>
+    </div>
+  </div>
+</section>

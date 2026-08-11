@@ -1,0 +1,48 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Blog{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>Blog Yazıları</h1>
+    <a href="{{ url_for('admin_blog_add') }}" class="btn btn-primary">+ Yazı Ekle</a>
+  </div>
+
+  <div class="admin-card">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Başlık</th>
+          <th>Yazar</th>
+          <th>Tarih</th>
+          <th>Durum</th>
+          <th>İşlemler</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in posts %}
+          <tr>
+            <td><strong>{{ p.title }}</strong></td>
+            <td>{{ p.author }}</td>
+            <td>{{ p.created_at.strftime('%d.%m.%Y') }}</td>
+            <td>
+              {% if p.is_published %}
+                <span class="badge badge-onaylandi">Yayında</span>
+              {% else %}
+                <span class="badge badge-beklemede">Taslak</span>
+              {% endif %}
+            </td>
+            <td class="actions">
+              <a href="{{ url_for('admin_blog_edit', id=p.id) }}" class="btn btn-sm btn-outline">Düzenle</a>
+              <form action="{{ url_for('admin_blog_delete', id=p.id) }}" method="POST" onsubmit="return confirm('Silmek istediğinize emin misiniz?')">
+                <button type="submit" class="btn btn-sm btn-danger">Sil</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

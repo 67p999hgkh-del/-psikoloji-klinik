@@ -1,0 +1,141 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>Dashboard</h1>
+    <p>Hoş geldiniz, {{ session.username }}
+      {% if user.role == 'therapist' and user.therapist %}
+        — {{ user.therapist.name }}
+      {% endif %}
+    </p>
+  </div>
+
+  {% if user.role == 'admin' and visitor_stats %}
+  <div class="admin-card admin-visitor-card">
+    <div class="admin-card-header">
+      <h2>Ziyaretçi İstatistikleri</h2>
+    </div>
+    <div class="stats-grid admin-stats admin-visitor-stats">
+      <div class="stat-card admin-stat admin-stat-live">
+        <span class="stat-value">{{ visitor_stats.live }}</span>
+        <span class="stat-label">Anlık</span>
+      </div>
+      <div class="stat-card admin-stat admin-stat-monthly">
+        <span class="stat-value">{{ visitor_stats.monthly }}</span>
+        <span class="stat-label">Aylık</span>
+      </div>
+      <div class="stat-card admin-stat admin-stat-total">
+        <span class="stat-value">{{ visitor_stats.total }}</span>
+        <span class="stat-label">Total</span>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="stats-grid admin-stats">
+    {% if stats.therapists is not none %}
+      <div class="stat-card admin-stat">
+        <span class="stat-value">{{ stats.therapists }}</span>
+        <span class="stat-label">Terapist</span>
+      </div>
+    {% endif %}
+    <div class="stat-card admin-stat">
+      <span class="stat-value">{{ stats.appointments }}</span>
+      <span class="stat-label">Randevu</span>
+    </div>
+    <div class="stat-card admin-stat admin-stat-warning">
+      <span class="stat-value">{{ stats.pending }}</span>
+      <span class="stat-label">Bekleyen</span>
+    </div>
+    <div class="stat-card admin-stat">
+      <span class="stat-value">{{ chart_stats.weekly }}</span>
+      <span class="stat-label">Bu Hafta</span>
+    </div>
+    <div class="stat-card admin-stat">
+      <span class="stat-value">{{ chart_stats.monthly }}</span>
+      <span class="stat-label">Bu Ay</span>
+    </div>
+    {% if stats.posts is not none %}
+      <div class="stat-card admin-stat">
+        <span class="stat-value">{{ stats.posts }}</span>
+        <span class="stat-label">Blog</span>
+      </div>
+    {% endif %}
+    {% if stats.slides is not none %}
+      <div class="stat-card admin-stat">
+        <span class="stat-value">{{ stats.slides }}</span>
+        <span class="stat-label">Slider</span>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="admin-chart-grid">
+    <div class="admin-card">
+      <div class="admin-card-header"><h2>Randevu Durum Oranı</h2></div>
+      <canvas id="statusChart" height="180"></canvas>
+    </div>
+    <div class="admin-card">
+      <div class="admin-card-header"><h2>Haftalık Randevu Trendı</h2></div>
+      <canvas id="trendChart" height="180"></canvas>
+    </div>
+  </div>
+
+  <div class="admin-card">
+    <div class="admin-card-header">
+      <h2>{% if user.role == 'therapist' %}Randevularım{% else %}Son Randevular{% endif %}</h2>
+      {% if can('appointments') %}
+        <a href="{{ url_for('admin_appointments') }}" class="btn btn-sm btn-outline">Tümünü Gör</a>
+      {% endif %}
+    </div>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Danışan</th>
+          {% if user.role != 'therapist' %}<th>Terapist</th>{% endif %}
+          <th>Tarih</th>
+          <th>Durum</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in recent_appointments %}
+          <tr>
+            <td>{{ a.patient_name }}</td>
+            {% if user.role != 'therapist' %}<td>{{ a.therapist.name }}</td>{% endif %}
+            <td>{{ a.appointment_date.strftime('%d.%m.%Y') }} {{ a.appointment_time.strftime('%H:%M') }}</td>
+            <td><span class="badge badge-{{ a.status }}">{{ a.STATUS_LABELS.get(a.status, a.status) }}</span></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="{% if user.role == 'therapist' %}3{% else %}4{% endif %}" class="empty">Henüz randevu yok.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  const statusData = {{ chart_stats.status_chart|tojson }};
+  const trendData = {{ chart_stats.trend_chart|tojson }};
+  new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: statusData.labels,
+      datasets: [{ data: statusData.values, backgroundColor: ['#f59e0b','#2563eb','#ef4444','#10b981'] }]
+    },
+    options: { plugins: { legend: { position: 'bottom' } } }
+  });
+  new Chart(document.getElementById('trendChart'), {
+    type: 'bar',
+    data: {
+      labels: trendData.labels,
+      datasets: [{ label: 'Randevu', data: trendData.values, backgroundColor: '#2563eb' }]
+    },
+    options: { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, plugins: { legend: { display: false } } }
+  });
+</script>
+{% endblock %}

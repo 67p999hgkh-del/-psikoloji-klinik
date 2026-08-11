@@ -1,0 +1,15 @@
+<div id="cookie-consent" class="cookie-consent" hidden>
+  <div class="cookie-consent-inner">
+    <div class="cookie-consent-text">
+      <strong>🍪 {{ t('cookie.title') }}</strong>
+      <p>
+        {{ t('cookie.text') }}
+        <a href="{{ url_for('about') }}">{{ t('cookie.more') }}</a>
+      </p>
+    </div>
+    <div class="cookie-consent-actions">
+      <button type="button" class="btn btn-outline btn-sm" data-cookie-action="reject">{{ t('cookie.reject') }}</button>
+      <button type="button" class="btn btn-primary btn-sm" data-cookie-action="accept">{{ t('cookie.accept') }}</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,24 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Giriş{% endblock %}
+
+{% block content %}
+<div class="admin-login">
+  <div class="login-card">
+    <h1>⚖️ Yönetim Girişi</h1>
+    <p>{{ site_name }} — Admin, Editor ve Terapist hesapları</p>
+    <form method="POST">
+      <div class="form-group">
+        <label for="username">Kullanıcı Adı</label>
+        <input type="text" id="username" name="username" required autofocus>
+      </div>
+      <div class="form-group">
+        <label for="password">Şifre</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Giriş Yap</button>
+    </form>
+    <p class="login-hint">Varsayılan: admin / admin123</p>
+  </div>
+</div>
+{% endblock %}

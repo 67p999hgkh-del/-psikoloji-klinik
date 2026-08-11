@@ -1,0 +1,79 @@
+<section class="appointment-search-hero">
+  <div class="container appointment-search-grid">
+    <div class="appointment-search-copy {% if current_session_type == 'online' %}is-online-mode{% endif %}" data-appointment-search-copy>
+      <h1>{{ t('hero.appointment_title') }}</h1>
+      {% set current_session_type = session_type|default(request.args.get('session_type', 'yuz_yuze')) %}
+      <p
+        class="appointment-search-sub"
+        data-appointment-sub
+        data-sub-inperson="{{ t('hero.appointment_sub') }}"
+        data-sub-online="{{ t('hero.appointment_sub_online') }}"
+      >{{ t('hero.appointment_sub_online') if current_session_type == 'online' else t('hero.appointment_sub') }}</p>
+
+      <form
+        class="appointment-search-form {% if current_session_type == 'online' %}is-online{% endif %}"
+        action="{{ url_for('appointment_page') }}"
+        method="GET"
+        data-search-form
+        data-appointment-search-form
+      >
+        {% include 'partials/appointment_type_toggle.html' %}
+
+        <div class="appointment-search-bar">
+          <div class="search-field search-field-grow search-autocomplete-wrap">
+            <span class="search-icon">🔎</span>
+            <input type="text" name="q" class="therapist-search-input" placeholder="{{ t('search.specialty_placeholder') }}" value="{{ request.args.get('q', '') }}" autocomplete="off" data-search-input>
+            <ul class="search-suggestions" data-search-suggestions hidden></ul>
+          </div>
+          <div class="search-field search-field-city" data-city-field>
+            <span class="search-icon">📍</span>
+            <select name="city">
+              <option value="">{{ t('search.city_select') }}</option>
+              {% for city in popular_cities %}
+                <option value="{{ city }}" {% if request.args.get('city') == city %}selected{% endif %}>{{ city }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-search">{{ t('search.search_btn') }}</button>
+        </div>
+      </form>
+
+      <div class="privacy-badge-wrap">{% include 'partials/privacy_badge.html' %}</div>
+
+      <div class="popular-cities" data-popular-cities>
+        <span class="popular-cities-label">{{ t('search.popular_cities') }}</span>
+        <div class="popular-cities-grid">
+          {% for city in popular_cities[:12] %}
+            <a href="{{ url_for('appointment_page', city=city, session_type='yuz_yuze') }}" class="city-chip">{{ city }}</a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="appointment-search-visual" aria-hidden="true">
+      <div class="search-hero-art">
+        <div class="search-hero-blob"></div>
+        <div class="search-hero-image-wrap">
+          <img
+            src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=520&h=620&fit=crop"
+            alt=""
+            class="search-hero-image"
+            loading="lazy"
+          >
+        </div>
+        <div class="search-hero-float search-hero-float-online">
+          <span class="search-hero-float-icon">💻</span>
+          <span>{{ t('therapist.online') }}</span>
+        </div>
+        <div class="search-hero-float search-hero-float-safe">
+          <span class="search-hero-float-icon">🛡️</span>
+          <span>{{ t('widget.safe_env') }}</span>
+        </div>
+        <div class="search-hero-stat">
+          <strong>15+</strong>
+          <span>{{ t('stats.experts') }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ t('pricing.title') }}{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pricing-hub.css') }}?v={{ static_v }}">
+{% endblock %}
+
+{% block content %}
+<div class="ph-page">
+  <section class="ph-hero">
+    <div class="container">
+      <nav class="ph-breadcrumb" aria-label="Konum">
+        <ol>
+          <li><a href="{{ url_for('home') }}">{{ t('nav.home') }}</a></li>
+          <li aria-current="page">{{ t('pricing.title') }}</li>
+        </ol>
+      </nav>
+      <span class="ph-badge">{{ t('pricing.badge') }}</span>
+      <h1 class="ph-hero-title">{{ t('pricing.title') }}</h1>
+      <p class="ph-hero-sub">{{ t('pricing.subtitle') }}</p>
+    </div>
+  </section>
+
+  <section class="ph-plans section">
+    <div class="container">
+      <div class="ph-plan-grid">
+        {% for plan in pricing_plans %}
+        <article class="ph-plan-card{% if plan.is_popular %} is-popular{% endif %}{% if plan.is_enterprise %} is-enterprise{% endif %}">
+          {% if plan.is_popular %}
+          <span class="ph-plan-badge">{{ t('pricing.popular') }}</span>
+          {% endif %}
+          <header class="ph-plan-head">
+            <h2>{{ plan.label }}</h2>
+            <p class="ph-plan-tag">{{ plan.tagline }}</p>
+          </header>
+          <div class="ph-plan-price">
+            <div class="ph-price-row">
+              <span class="ph-price-label">{{ t('pricing.setup') }}</span>
+              <strong class="ph-price-value">{{ plan.setup_display }}</strong>
+            </div>
+            <div class="ph-price-row ph-price-main">
+              <span class="ph-price-label">{{ t('pricing.monthly') }}</span>
+              <strong class="ph-price-value">{{ plan.monthly_display }}<small>/ay</small></strong>
+            </div>
+            {% if plan.id != 'custom' %}
+            <p class="ph-price-yearly">{{ t('pricing.yearly_note') }}: <strong>{{ plan.yearly_display }}</strong></p>
+            {% else %}
+            <p class="ph-price-yearly">{{ t('pricing.custom_note') }}</p>
+            {% endif %}
+          </div>
+          <ul class="ph-feature-list">
+            {% for feat in plan.features_included %}
+            <li class="ph-feat-in">{{ feat }}</li>
+            {% endfor %}
+            {% for feat in plan.features_excluded %}
+            <li class="ph-feat-out">{{ feat }}</li>
+            {% endfor %}
+          </ul>
+          <div class="ph-plan-limits">
+            <span>{{ t('pricing.therapists') }}: {{ plan.limits.therapists if plan.limits.therapists < 999 else '∞' }}</span>
+            <span>{{ t('pricing.branches') }}: {{ plan.limits.branches if plan.limits.branches < 99 else '∞' }}</span>
+          </div>
+          <a href="{{ url_for('contact') }}?subject=pricing&plan={{ plan.id }}" class="btn btn-primary ph-plan-cta">
+            {{ t('pricing.cta') }}
+          </a>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="ph-addons section">
+    <div class="container">
+      <h2 class="ph-section-title">{{ t('pricing.addons_title') }}</h2>
+      <div class="ph-addon-grid">
+        {% for addon in pricing_addons %}
+        <div class="ph-addon-card">
+          <span class="ph-addon-label">{{ addon.label }}</span>
+          <strong class="ph-addon-price">{{ addon.price }}</strong>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="ph-faq section">
+    <div class="container ph-faq-inner">
+      <h2 class="ph-section-title">{{ t('pricing.faq_title') }}</h2>
+      <details class="ph-faq-item">
+        <summary>{{ t('pricing.faq1_q') }}</summary>
+        <p>{{ t('pricing.faq1_a') }}</p>
+      </details>
+      <details class="ph-faq-item">
+        <summary>{{ t('pricing.faq2_q') }}</summary>
+        <p>{{ t('pricing.faq2_a') }}</p>
+      </details>
+      <details class="ph-faq-item">
+        <summary>{{ t('pricing.faq3_q') }}</summary>
+        <p>{{ t('pricing.faq3_a') }}</p>
+      </details>
+      <details class="ph-faq-item">
+        <summary>{{ t('pricing.faq4_q') }}</summary>
+        <p>{{ t('pricing.faq4_a') }}</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="ph-cta section">
+    <div class="container ph-cta-box">
+      <h2>{{ t('pricing.final_title') }}</h2>
+      <p>{{ t('pricing.final_sub') }}</p>
+      <div class="ph-cta-actions">
+        <a href="{{ url_for('contact') }}?subject=pricing" class="btn btn-primary">{{ t('pricing.final_btn') }}</a>
+        <a href="{{ url_for('appointment_page') }}" class="btn btn-ghost">{{ t('pricing.demo_btn') }}</a>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

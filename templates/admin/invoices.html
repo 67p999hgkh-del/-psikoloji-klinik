@@ -1,0 +1,36 @@
+{% extends 'admin/base.html' %}
+{% block title %}Faturalar{% endblock %}
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>Faturalar</h1>
+    <a href="{{ url_for('admin_invoice_new') }}" class="btn btn-primary btn-sm">+ Fatura</a>
+  </div>
+  <div class="admin-card">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Tarih</th>
+          <th>Danışan</th>
+          <th>Tutar</th>
+          <th>Açıklama</th>
+          <th>Durum</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inv in invoices %}
+          <tr>
+            <td>{{ inv.invoice_date.strftime('%d.%m.%Y') }}</td>
+            <td>{{ inv.patient_name or inv.patient_email }}</td>
+            <td>{{ '%.2f'|format(inv.amount) }} {{ inv.currency }}</td>
+            <td>{{ inv.description }}</td>
+            <td>{{ inv.STATUS_LABELS.get(inv.status, inv.status) }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="empty">Fatura yok.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

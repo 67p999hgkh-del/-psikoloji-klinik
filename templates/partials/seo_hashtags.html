@@ -1,0 +1,14 @@
+{% macro render_hashtags(keywords, title_key='seo.keywords') %}
+  {% if keywords %}
+    <div class="seo-hashtags">
+      {% if title_key %}
+        <span class="seo-hashtags-label">{{ t(title_key) }}</span>
+      {% endif %}
+      <div class="seo-hashtags-list">
+        {% for tag in keywords %}
+          <span class="seo-hashtag">{{ tag if tag.startswith('#') else '#' ~ tag }}</span>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+{% endmacro %}

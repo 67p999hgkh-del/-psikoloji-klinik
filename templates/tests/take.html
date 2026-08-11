@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% from 'partials/seo_hashtags.html' import render_hashtags with context %}
+
+{% block extra_head %}
+<style>:root { --test-accent: {{ test.accent_color }}; }</style>
+{% endblock %}
+
+{% block content %}
+  <section class="test-take-hero" style="--test-accent: {{ test.accent_color }}">
+    <div class="container container-narrow">
+      <a href="{{ url_for('test_landing', slug=test.slug) }}" class="back-link-dark">← {{ test.hero_title or test.title }}</a>
+      <div class="test-take-header">
+        <span class="tests-badge">{{ test.category|upper }}</span>
+        <h1>{{ test.icon }} Test Soruları</h1>
+        <p>{{ test.question_list()|length }} soru · yaklaşık {{ test.estimated_minutes() }} dakika</p>
+      </div>
+      <div class="test-progress-wrap">
+        <div class="test-progress-bar"><span id="test-progress-fill"></span></div>
+        <span id="test-progress-text">0 / {{ test.question_list()|length }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container container-narrow">
+      <form action="{{ url_for('test_result', slug=test.slug) }}" method="POST" class="test-form test-form-v2" id="test-form">
+        {% for question in test.question_list() %}
+          <fieldset class="test-question" data-question-index="{{ loop.index }}">
+            <legend>
+              <span class="test-q-number">{{ loop.index }}</span>
+              {{ question.text }}
+            </legend>
+            <div class="test-options test-options-pills">
+              {% for option in question.options %}
+                <label class="test-option-pill">
+                  <input type="radio" name="q_{{ question.id }}" value="{{ option.value }}" required>
+                  <span>{{ option.label }}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </fieldset>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary btn-lg btn-block" id="test-submit">Sonuçları Gör 🎉</button>
+      </form>
+      {{ render_hashtags(test.keyword_list()) }}
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/tests.js') }}"></script>
+{% endblock %}

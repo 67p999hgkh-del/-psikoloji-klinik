@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% from 'partials/person_photo.html' import person_photo %}
+{% from 'partials/therapist_badges.html' import therapist_badges with context %}
+
+{% block content %}
+  <section class="page-hero page-hero-color">
+    <div class="container">
+      <h1>{{ t('page.therapists_title') }}</h1>
+      <p>{{ t('page.therapists_sub') }}</p>
+      <div class="privacy-badge-wrap privacy-badge-wrap-center">{% include 'partials/privacy_badge.html' %}</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="tip-banner">
+        <div class="tip-banner-icon">ℹ️</div>
+        <div>
+          <strong>{{ therapist_tip.title }}</strong>
+          <p>{{ therapist_tip.text }}</p>
+        </div>
+      </div>
+
+      {% set filter_action = url_for('therapists_list') %}
+      {% include 'partials/therapist_filter_bar.html' %}
+
+      <div class="therapist-grid therapist-grid-lg">
+        {% for therapist in therapists %}
+          <article class="therapist-card therapist-card-lg">
+            {{ person_photo(therapist, 'therapist-avatar-lg') }}
+            {{ therapist_badges(therapist) }}
+            <h3>{{ therapist.name }}</h3>
+            <p class="therapist-title">{{ therapist.title }}</p>
+            <p class="therapist-city">📍 {{ therapist.city or 'İstanbul' }}</p>
+            <p class="therapist-bio">{{ therapist.bio[:150] }}...</p>
+            <p class="therapist-specialties"><strong>{{ t('therapist.specialty') }}</strong> {{ therapist.specialties }}</p>
+            <div class="card-actions">
+              <a href="{{ url_for('therapist_detail', slug=therapist.slug) }}" class="btn btn-outline">{{ t('therapist.view_profile') }}</a>
+              <a href="{{ url_for('appointment_page', slug=therapist.slug) }}" class="btn btn-primary">{{ t('therapist.book') }}</a>
+            </div>
+          </article>
+        {% else %}
+          <p class="empty-state">{{ t('search.no_results') }}</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+{% endblock %}

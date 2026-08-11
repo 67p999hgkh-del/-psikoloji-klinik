@@ -1,0 +1,30 @@
+{% set current_session_type = session_type|default(request.args.get('session_type', 'yuz_yuze')) %}
+<div
+  class="appointment-type-toggle"
+  data-appointment-type-toggle
+  role="radiogroup"
+  aria-label="{{ t('search.appointment_type') }}"
+>
+  <span class="appointment-type-label">{{ t('search.appointment_type') }}</span>
+  <div class="appointment-type-options">
+    <button
+      type="button"
+      class="appointment-type-btn {% if current_session_type != 'online' %}is-active{% endif %}"
+      data-session-type="yuz_yuze"
+      aria-pressed="{{ 'true' if current_session_type != 'online' else 'false' }}"
+    >
+      <span aria-hidden="true">🏢</span>
+      {{ t('apt.in_person') }}
+    </button>
+    <button
+      type="button"
+      class="appointment-type-btn {% if current_session_type == 'online' %}is-active{% endif %}"
+      data-session-type="online"
+      aria-pressed="{{ 'true' if current_session_type == 'online' else 'false' }}"
+    >
+      <span aria-hidden="true">💻</span>
+      {{ t('apt.online') }}
+    </button>
+  </div>
+</div>
+<input type="hidden" name="session_type" value="{{ current_session_type if current_session_type == 'online' else 'yuz_yuze' }}" data-session-type-input>

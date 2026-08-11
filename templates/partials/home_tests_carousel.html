@@ -1,0 +1,36 @@
+{% if tests %}
+<section class="section tests-preview tests-preview-gradient home-tests-section">
+  <div class="container">
+    <div class="section-header tests-preview-header">
+      <h2 class="section-title">{{ t('home.tests_title') }}</h2>
+      <a href="{{ url_for('tests_list') }}" class="link-arrow link-arrow-light">{{ t('home.tests_all') }}</a>
+    </div>
+
+    <div class="tests-carousel" data-tests-carousel>
+      <button type="button" class="tests-carousel-btn tests-carousel-prev" data-tests-prev aria-label="{{ t('blog.prev') }}">‹</button>
+      <div class="tests-carousel-viewport" data-tests-viewport>
+        <div class="tests-carousel-track">
+          {% for test in tests %}
+            <article class="test-mini-card tests-carousel-slide" style="--test-accent: {{ test.accent_color }}">
+              <div class="test-mini-card-top">
+                <span class="test-mini-card-icon">{{ test.icon }}</span>
+                <span class="test-mini-card-badge">{{ t('home.tests_free') }}</span>
+              </div>
+              <span class="test-mini-card-category">{{ test.category }}</span>
+              <h3><a href="{{ url_for('test_landing', slug=test.slug) }}">{{ test.hero_title or test.title }}</a></h3>
+              <p>{{ (test.hero_subtitle or test.description)[:90] }}{% if (test.hero_subtitle or test.description)|length > 90 %}…{% endif %}</p>
+              <div class="test-mini-card-meta">
+                <span>⏱ {{ test.estimated_minutes() }} dk</span>
+                <span>📝 {{ test.question_list()|length }}</span>
+              </div>
+              <a href="{{ url_for('test_landing', slug=test.slug) }}" class="btn btn-sm btn-block test-mini-card-btn">{{ t('tests.go_test') }}</a>
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+      <button type="button" class="tests-carousel-btn tests-carousel-next" data-tests-next aria-label="{{ t('blog.next') }}">›</button>
+      <div class="tests-carousel-dots" data-tests-dots></div>
+    </div>
+  </div>
+</section>
+{% endif %}

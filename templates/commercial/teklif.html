@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Teklif — {{ company.brand_name }}</title>
+  <style>
+    @page { margin: 18mm 15mm; size: A4; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 10.5pt; color: #1e293b; line-height: 1.5; max-width: 210mm; margin: 0 auto; padding: 12mm; }
+    h1 { font-size: 17pt; margin: 0 0 4px; color: #0f172a; }
+    .brand { font-size: 9pt; color: #64748b; margin-bottom: 16px; }
+    h2 { font-size: 11pt; margin: 18px 0 8px; color: #2563eb; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+    .meta { display: flex; flex-wrap: wrap; gap: 1rem 2rem; margin-bottom: 18px; font-size: 9.5pt; color: #64748b; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 9.5pt; }
+    th, td { border: 1px solid #e2e8f0; padding: 6px 8px; text-align: left; vertical-align: top; }
+    th { background: #f8fafc; font-weight: 700; }
+    .total { font-size: 12pt; font-weight: 800; color: #1d4ed8; }
+    .check { margin: 3px 0; font-size: 9.5pt; }
+    .note { font-size: 9pt; color: #64748b; margin-top: 16px; }
+    .sign { margin-top: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+    .sign-box { border-top: 1px solid #94a3b8; padding-top: 8px; font-size: 9.5pt; }
+    @media print { body { padding: 0; } .no-print { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="no-print" style="margin-bottom:16px;">
+    <button onclick="window.print()" style="padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;">Yazdır / PDF Kaydet</button>
+  </div>
+
+  <h1>Klinik Yönetim Platformu — Teklif Formu</h1>
+  <p class="brand">{{ company.legal_name }} · {{ company.brand_name }} · {{ company.phone }} · {{ company.sales_email }}</p>
+
+  <div class="meta">
+    <span>Teklif No: <strong>{{ quote.quote_no }}</strong></span>
+    <span>Tarih: <strong>{{ quote_date }}</strong></span>
+    <span>Geçerlilik: <strong>{{ quote.validity_days }} gün</strong></span>
+  </div>
+
+  <h2>Taraflar</h2>
+  <table>
+    <tr>
+      <th style="width:28%">Hizmet Sağlayıcı</th>
+      <td>
+        <strong>{{ company.legal_name }}</strong><br>
+        {{ company.address }}<br>
+        {{ company.tax_office }} · VKN: {{ company.tax_number }} · MERSİS: {{ company.mersis }}<br>
+        {{ company.email }} · {{ company.phone }}
+      </td>
+    </tr>
+    <tr>
+      <th>Müşteri (Klinik)</th>
+      <td>
+        <strong>{{ quote.customer_name }}</strong><br>
+        Yetkili: {{ quote.customer_contact }}<br>
+        {{ quote.customer_email }} · {{ quote.customer_phone }}
+      </td>
+    </tr>
+  </table>
+
+  <h2>Teklif Özeti</h2>
+  <table>
+    <tr><th>Seçilen Paket</th><td><strong>{{ plan.label }}</strong> — {{ plan.tagline }}</td></tr>
+    <tr><th>Kurulum bedeli</th><td>{{ setup_display }} (KDV hariç)</td></tr>
+    <tr><th>Aylık hizmet bedeli</th><td>{{ monthly_display }}/ay (KDV hariç)</td></tr>
+    <tr><th>Yıllık hizmet (peşin, %15 indirim)</th><td>{{ yearly_service_display }}</td></tr>
+    <tr><th>Kurulum + 1. yıl hizmet toplam</th><td class="total">{{ total_yearly_display }} (KDV hariç)</td></tr>
+  </table>
+
+  <h2>Paket Kapsamı</h2>
+  {% for feat in plan.features_included %}
+  <div class="check">☑ {{ feat }}</div>
+  {% endfor %}
+  {% for feat in plan.features_excluded %}
+  <div class="check" style="color:#94a3b8;">☐ {{ feat }}</div>
+  {% endfor %}
+
+  <h2>Limitler</h2>
+  <table>
+    <tr><th>Terapist</th><th>Şube</th><th>Depolama</th><th>Eğitim</th><th>Kurulum süresi</th></tr>
+    <tr>
+      <td>max {{ plan.limits.therapists if plan.limits.therapists < 999 else 'sınırsız' }}</td>
+      <td>max {{ plan.limits.branches if plan.limits.branches < 99 else 'sınırsız' }}</td>
+      <td>{{ plan.limits.storage_gb }} GB</td>
+      <td>{{ quote.training_hours }} saat (uzaktan)</td>
+      <td>{{ quote.setup_weeks }}</td>
+    </tr>
+  </table>
+
+  <h2>Ödeme Planı (Kurulum)</h2>
+  <table>
+    <tr><th>Aşama</th><th>Oran</th><th>Tutar</th></tr>
+    {% for row in payment_rows %}
+    <tr><td>{{ row.label }}</td><td>%{{ row.pct }}</td><td>{{ row.amount }}</td></tr>
+    {% endfor %}
+    <tr><td>Aylık hizmet (devam)</td><td>—</td><td>{{ monthly_display }}/ay</td></tr>
+  </table>
+
+  <h2>Banka Bilgileri</h2>
+  <p>{{ company.bank_name }} — IBAN: {{ company.bank_iban }}</p>
+
+  <h2>Onay</h2>
+  <div class="sign">
+    <div class="sign-box">
+      <strong>Müşteri</strong><br><br>
+      {{ quote.customer_name }}<br>
+      İmza: _________________________<br>
+      Tarih: _______________
+    </div>
+    <div class="sign-box">
+      <strong>{{ company.legal_name }}</strong><br>
+      {{ company.authorized_person }} — {{ company.authorized_title }}<br><br>
+      İmza: _________________________<br>
+      Tarih: _______________
+    </div>
+  </div>
+
+  <p class="note">
+    Bu teklif {{ quote.validity_days }} gün geçerlidir. Fiyatlar KDV hariçtir (%20 KDV faturaya eklenir).
+    Detaylı sözleşme maddeleri için sözleşme dokümanına bakınız. Veri işleme: {{ company.data_location }}.
+  </p>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Teklif — {{ company.brand_name }}</title>
+  <style>
+    @page { margin: 18mm 15mm; size: A4; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 10.5pt; color: #1e293b; line-height: 1.5; max-width: 210mm; margin: 0 auto; padding: 12mm; }
+    h1 { font-size: 17pt; margin: 0 0 4px; color: #0f172a; }
+    .brand { font-size: 9pt; color: #64748b; margin-bottom: 16px; }
+    h2 { font-size: 11pt; margin: 18px 0 8px; color: #2563eb; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+    .meta { display: flex; flex-wrap: wrap; gap: 1rem 2rem; margin-bottom: 18px; font-size: 9.5pt; color: #64748b; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 9.5pt; }
+    th, td { border: 1px solid #e2e8f0; padding: 6px 8px; text-align: left; vertical-align: top; }
+    th { background: #f8fafc; font-weight: 700; }
+    .total { font-size: 12pt; font-weight: 800; color: #1d4ed8; }
+    .check { margin: 3px 0; font-size: 9.5pt; }
+    .note { font-size: 9pt; color: #64748b; margin-top: 16px; }
+    .sign { margin-top: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+    .sign-box { border-top: 1px solid #94a3b8; padding-top: 8px; font-size: 9.5pt; }
+    @media print { body { padding: 0; } .no-print { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="no-print" style="margin-bottom:16px;">
+    <button onclick="window.print()" style="padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;">Yazdır / PDF Kaydet</button>
+  </div>
+
+  <h1>Klinik Yönetim Platformu — Teklif Formu</h1>
+  <p class="brand">{{ company.legal_name }} · {{ company.brand_name }} · {{ company.phone }} · {{ company.sales_email }}</p>
+
+  <div class="meta">
+    <span>Teklif No: <strong>{{ quote.quote_no }}</strong></span>
+    <span>Tarih: <strong>{{ quote_date }}</strong></span>
+    <span>Geçerlilik: <strong>{{ quote.validity_days }} gün</strong></span>
+  </div>
+
+  <h2>Taraflar</h2>
+  <table>
+    <tr>
+      <th style="width:28%">Hizmet Sağlayıcı</th>
+      <td>
+        <strong>{{ company.legal_name }}</strong><br>
+        {{ company.address }}<br>
+        {{ company.tax_office }} · VKN: {{ company.tax_number }} · MERSİS: {{ company.mersis }}<br>
+        {{ company.email }} · {{ company.phone }}
+      </td>
+    </tr>
+    <tr>
+      <th>Müşteri (Klinik)</th>
+      <td>
+        <strong>{{ quote.customer_name }}</strong><br>
+        Yetkili: {{ quote.customer_contact }}<br>
+        {{ quote.customer_email }} · {{ quote.customer_phone }}
+      </td>
+    </tr>
+  </table>
+
+  <h2>Teklif Özeti</h2>
+  <table>
+    <tr><th>Seçilen Paket</th><td><strong>{{ plan.label }}</strong> — {{ plan.tagline }}</td></tr>
+    <tr><th>Kurulum bedeli</th><td>{{ setup_display }} (KDV hariç)</td></tr>
+    <tr><th>Aylık hizmet bedeli</th><td>{{ monthly_display }}/ay (KDV hariç)</td></tr>
+    <tr><th>Yıllık hizmet (peşin, %15 indirim)</th><td>{{ yearly_service_display }}</td></tr>
+    <tr><th>Kurulum + 1. yıl hizmet toplam</th><td class="total">{{ total_yearly_display }} (KDV hariç)</td></tr>
+  </table>
+
+  <h2>Paket Kapsamı</h2>
+  {% for feat in plan.features_included %}
+  <div class="check">☑ {{ feat }}</div>
+  {% endfor %}
+  {% for feat in plan.features_excluded %}
+  <div class="check" style="color:#94a3b8;">☐ {{ feat }}</div>
+  {% endfor %}
+
+  <h2>Limitler</h2>
+  <table>
+    <tr><th>Terapist</th><th>Şube</th><th>Depolama</th><th>Eğitim</th><th>Kurulum süresi</th></tr>
+    <tr>
+      <td>max {{ plan.limits.therapists if plan.limits.therapists < 999 else 'sınırsız' }}</td>
+      <td>max {{ plan.limits.branches if plan.limits.branches < 99 else 'sınırsız' }}</td>
+      <td>{{ plan.limits.storage_gb }} GB</td>
+      <td>{{ quote.training_hours }} saat (uzaktan)</td>
+      <td>{{ quote.setup_weeks }}</td>
+    </tr>
+  </table>
+
+  <h2>Ödeme Planı (Kurulum)</h2>
+  <table>
+    <tr><th>Aşama</th><th>Oran</th><th>Tutar</th></tr>
+    {% for row in payment_rows %}
+    <tr><td>{{ row.label }}</td><td>%{{ row.pct }}</td><td>{{ row.amount }}</td></tr>
+    {% endfor %}
+    <tr><td>Aylık hizmet (devam)</td><td>—</td><td>{{ monthly_display }}/ay</td></tr>
+  </table>
+
+  <h2>Banka Bilgileri</h2>
+  <p>{{ company.bank_name }} — IBAN: {{ company.bank_iban }}</p>
+
+  <h2>Onay</h2>
+  <div class="sign">
+    <div class="sign-box">
+      <strong>Müşteri</strong><br><br>
+      {{ quote.customer_name }}<br>
+      İmza: _________________________<br>
+      Tarih: _______________
+    </div>
+    <div class="sign-box">
+      <strong>{{ company.legal_name }}</strong><br>
+      {{ company.authorized_person }} — {{ company.authorized_title }}<br><br>
+      İmza: _________________________<br>
+      Tarih: _______________
+    </div>
+  </div>
+
+  <p class="note">
+    Bu teklif {{ quote.validity_days }} gün geçerlidir. Fiyatlar KDV hariçtir (%20 KDV faturaya eklenir).
+    Detaylı sözleşme maddeleri için sözleşme dokümanına bakınız. Veri işleme: {{ company.data_location }}.
+  </p>
+</body>
+</html>

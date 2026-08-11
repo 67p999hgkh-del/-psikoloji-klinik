@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% import 'partials/blog_sidebar.html' as blog_macros with context %}
+{% from 'partials/seo_hashtags.html' import render_hashtags with context %}
+
+{% block content %}
+  <section class="section blog-article-page">
+    <div class="container">
+      <div class="blog-layout">
+        <article class="blog-main blog-article">
+          <a href="{{ url_for('blog_list') }}" class="back-link-dark">{{ t('blog.back') }}</a>
+          <span class="blog-category">{{ post.category }}</span>
+          <h1>{{ post.title }}</h1>
+          <div class="blog-meta">
+            {{ post.created_at.strftime('%d.%m.%Y') }} · {{ post.author }}
+          </div>
+
+          {% if post.featured_image %}
+            <div class="blog-article-image" style="background-image:url('{{ post.featured_image }}')"></div>
+          {% endif %}
+
+          <div class="prose blog-content">
+            {{ post.content | safe }}
+          </div>
+
+          {% if post.tag_list() %}
+            <div class="blog-article-tags">
+              <strong>{{ t('blog.tags') }}</strong>
+              {% for tag in post.tag_list() %}
+                <a href="{{ url_for('blog_by_tag', tag_slug=tag.lstrip('#').lower()) }}" class="tag">{{ tag }}</a>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {{ render_hashtags(post.seo_keyword_list()) }}
+
+          {% if related %}
+            <section class="related-posts">
+              <h3>{{ t('blog.related') }}</h3>
+              <div class="related-grid">
+                {% for r in related %}
+                  <a href="{{ url_for('blog_detail', slug=r.slug) }}" class="related-card">
+                    <span class="blog-category">{{ r.category }}</span>
+                    <strong>{{ r.title }}</strong>
+                  </a>
+                {% endfor %}
+              </div>
+            </section>
+          {% endif %}
+        </article>
+
+        {{ blog_macros.blog_sidebar(sidebar_recent, sidebar_categories, sidebar_tags) }}
+      </div>
+    </div>
+  </section>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "{{ post.title }}",
+    "author": {"@type": "Person", "name": "{{ post.author }}"},
+    "datePublished": "{{ post.created_at.isoformat() }}",
+    "description": "{{ post.excerpt|e }}",
+    "keywords": "{{ post.keyword_list()|join(', ')|e }}"
+  }
+  </script>
+{% endblock %}

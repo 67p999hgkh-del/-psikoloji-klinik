@@ -1,0 +1,82 @@
+{% from 'partials/social_icons.html' import social_icon %}
+<footer class="site-footer site-footer-v2 site-footer-ph">
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand-block">
+        <div class="footer-logo-row">
+          <span class="logo-mark footer-logo-mark">{{ site_settings.logo_icon or '🧠' }}</span>
+          <div>
+            <strong class="footer-brand-name">{{ site_name }}</strong>
+            <p class="footer-brand-tag">{{ t('footer.platform_tag') }}</p>
+          </div>
+        </div>
+      </div>
+      {% if social_widget %}
+        {% set social_data = social_widget.parsed_content() %}
+        <div class="footer-social-row">
+          {% for item in social_data.get('items', []) %}
+            {% if item.url %}
+            <a href="{{ item.url }}" class="footer-social-icon social-{{ item.platform }}" target="_blank" rel="noopener noreferrer" aria-label="{{ item.label or item.platform }}">
+              {{ social_icon(item.platform) }}
+            </a>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="footer-columns footer-columns-ph">
+      <div class="footer-col">
+        <h4>{{ t('footer.corp') }}</h4>
+        <ul>
+          <li><a href="{{ url_for('about') }}">{{ t('nav.about') }}</a></li>
+          <li><a href="{{ url_for('pricing_page') }}">{{ t('nav.pricing') }}</a></li>
+          <li><a href="{{ url_for('contact') }}">{{ t('nav.contact') }}</a></li>
+          <li><a href="{{ url_for('home') }}#ph-b2b">{{ t('home.b2b_title') }}</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>{{ t('footer.services') }}</h4>
+        <ul>
+          <li><a href="{{ url_for('home') }}#ph-services">{{ t('nav.services') }}</a></li>
+          <li><a href="{{ url_for('home') }}#ph-psikohukuk">{{ t('footer.psikohukuk') }}</a></li>
+          <li><a href="{{ url_for('appointment_page') }}">{{ t('nav.appointment') }}</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>{{ t('footer.experts') }}</h4>
+        <ul>
+          <li><a href="{{ url_for('therapists_list') }}">{{ t('nav.experts') }}</a></li>
+          <li><a href="{{ url_for('tests_list') }}">{{ t('nav.tests') }}</a></li>
+          <li><a href="{{ url_for('blog_list') }}">{{ t('nav.blog') }}</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>{{ t('footer.legal') }}</h4>
+        <ul>
+          <li><a href="{{ url_for('about') }}">{{ t('footer.kvkk') }}</a></li>
+          <li><a href="{{ url_for('about') }}">{{ t('footer.kvkk_full') }}</a></li>
+          <li><a href="{{ url_for('about') }}">{{ t('footer.privacy') }}</a></li>
+          <li><a href="{{ url_for('about') }}">{{ t('footer.cookies') }}</a></li>
+          <li><a href="{{ url_for('about') }}">{{ t('footer.terms') }}</a></li>
+          <li><a href="{{ url_for('about') }}">{{ t('footer.disclaimer') }}</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-lang-row">
+      <div class="lang-switcher lang-switcher-footer">
+        {% for code, label in languages %}
+          <a href="{{ url_for('set_language', lang=code) }}" class="lang-btn {% if current_lang == code %}active{% endif %}" title="{{ label }}">
+            <span class="lang-flag">{{ lang_flags.get(code, '') }}</span>{{ code|upper }}
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="footer-bottom-v2">
+      <p>&copy; {{ current_year }} {{ site_name }}. {{ t('footer.rights') }}</p>
+      <p class="footer-disclaimer">{{ t('footer.medical_disclaimer') }}</p>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,65 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Tema & Logo{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>Tema & Logo Özelleştirme</h1>
+  </div>
+
+  <div class="admin-card">
+    <form method="POST" class="admin-form">
+      <h3>Marka</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Site Adı</label>
+          <input type="text" name="site_name" value="{{ settings.site_name }}">
+        </div>
+        <div class="form-group">
+          <label>Logo İkon (emoji)</label>
+          <input type="text" name="logo_icon" value="{{ settings.logo_icon }}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Logo Görsel URL (opsiyonel — emoji yerine)</label>
+        <input type="url" name="logo_url" value="{{ settings.logo_url }}" placeholder="https://...">
+      </div>
+      <div class="form-group">
+        <label>Slogan</label>
+        <input type="text" name="site_tagline" value="{{ settings.site_tagline }}">
+      </div>
+      <div class="form-group">
+        <label>SEO Açıklama</label>
+        <textarea name="site_description" rows="2">{{ settings.site_description }}</textarea>
+      </div>
+      <div class="form-group">
+        <label>SEO Hashtag / Anahtar Kelimeler</label>
+        <textarea name="site_keywords" rows="2">{{ settings.site_keywords }}</textarea>
+      </div>
+
+      <h3>Renkler</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Ana Renk</label>
+          <input type="color" name="primary_color" value="{{ settings.primary_color }}">
+        </div>
+        <div class="form-group">
+          <label>Koyu Ton</label>
+          <input type="color" name="primary_dark" value="{{ settings.primary_dark }}">
+        </div>
+        <div class="form-group">
+          <label>Vurgu Rengi</label>
+          <input type="color" name="accent_color" value="{{ settings.accent_color }}">
+        </div>
+        <div class="form-group">
+          <label>Arka Plan</label>
+          <input type="color" name="bg_color" value="{{ settings.bg_color }}">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Kaydet</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

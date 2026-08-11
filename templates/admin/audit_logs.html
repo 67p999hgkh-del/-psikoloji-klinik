@@ -1,0 +1,36 @@
+{% extends 'admin/base.html' %}
+{% block title %}Loglar{% endblock %}
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>Denetim Logları</h1>
+    <p>Kim neyi değiştirdi</p>
+  </div>
+  <div class="admin-card">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Tarih</th>
+          <th>Kullanıcı</th>
+          <th>Aksiyon</th>
+          <th>Varlık</th>
+          <th>Detay</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+          <tr>
+            <td>{{ log.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+            <td>{{ log.username }}</td>
+            <td>{{ log.action }}</td>
+            <td>{{ log.entity_type }}{% if log.entity_id %} #{{ log.entity_id }}{% endif %}</td>
+            <td class="log-detail">{{ log.detail }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5" class="empty">Henüz log yok.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% from 'partials/person_photo.html' import person_photo %}
+{% from 'partials/seo_hashtags.html' import render_hashtags with context %}
+
+{% block extra_head %}
+<style>:root { --test-accent: {{ test.accent_color }}; }</style>
+{% endblock %}
+
+{% block content %}
+  <section class="section">
+    <div class="container">
+      <div class="test-result-layout">
+        <div class="test-result-card test-result-{{ result.level }}">
+          <span class="test-result-badge">{{ test.category }}</span>
+          <h1>{{ result.title }}</h1>
+          <p class="test-result-summary">{{ result.summary }}</p>
+
+          {% if result.details %}
+            <div class="test-result-details">
+              {% for item in result.details %}
+                <div class="test-result-item">
+                  <strong>{{ item.label }}</strong>
+                  {% if item.score is defined %}
+                    <span class="test-score-bar"><span style="width: {{ (item.score / item.max * 100)|int }}%"></span></span>
+                    <span>{{ item.score }} / {{ item.max }}</span>
+                  {% endif %}
+                  {% if item.text %}<p>{{ item.text }}</p>{% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if result.score is defined and not result.details %}
+            <div class="test-result-score-ring">
+              <div class="test-score-circle" style="--score-pct: {{ ((result.score / result.max_score * 100) if result.max_score else 50)|int }}">
+                <strong>{{ result.score }}</strong>
+                {% if result.max_score %}<span>/ {{ result.max_score }}</span>{% endif %}
+              </div>
+            </div>
+          {% endif %}
+
+          <div class="test-recommendation">
+            <strong>{{ t('tests.recommendation') }}</strong> {{ result.recommendation }}
+          </div>
+
+          <div class="test-disclaimer">
+            {{ test.source_note }} — {{ t('tests.not_diagnosis') }}
+          </div>
+
+          <div class="privacy-badge-wrap">{% include 'partials/privacy_badge.html' %}</div>
+
+          {{ render_hashtags(test.keyword_list()) }}
+
+          <div class="test-result-actions">
+            <a href="{{ url_for('test_take', slug=test.slug) }}" class="btn btn-outline">{{ t('tests.retake') }}</a>
+            <a href="{{ url_for('tests_list') }}" class="btn btn-primary">{{ t('tests.other_tests') }}</a>
+          </div>
+        </div>
+
+        <aside class="test-therapist-panel">
+          <h2>{{ t('tests.recommended_title') }}</h2>
+          <p>{{ t('tests.recommended_sub') }}</p>
+
+          {% if recommended_therapists %}
+            <div class="test-therapist-cards">
+              {% for item in recommended_therapists %}
+                {% set therapist = item.therapist %}
+                <article class="test-therapist-card">
+                  {{ person_photo(therapist, 'test-therapist-photo') }}
+                  <div>
+                    <h3>{{ therapist.name }}</h3>
+                    <p class="test-therapist-title">{{ therapist.title }}</p>
+                    <p class="test-therapist-spec">{{ therapist.specialties }}</p>
+                    {% if item.matched_tags %}
+                      <div class="test-match-tags">
+                        {% for tag in item.matched_tags[:3] %}
+                          <span>{{ tag }}</span>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+                    <div class="test-therapist-actions">
+                      <a href="{{ url_for('therapist_detail', slug=therapist.slug) }}" class="btn btn-outline btn-sm">{{ t('tests.profile') }}</a>
+                      <a href="{{ url_for('appointment_page', slug=therapist.slug) }}" class="btn btn-primary btn-sm">{{ t('therapist.book') }}</a>
+                    </div>
+                  </div>
+                </article>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="test-therapist-empty">
+              <p>{{ t('tests.general_fallback') }}</p>
+              <a href="{{ url_for('therapists_list') }}" class="btn btn-primary btn-block">{{ t('tests.view_therapists') }}</a>
+              <a href="{{ url_for('appointment_page') }}" class="btn btn-outline btn-block">{{ t('therapist.book') }}</a>
+            </div>
+          {% endif %}
+        </aside>
+      </div>
+    </div>
+  </section>
+{% endblock %}

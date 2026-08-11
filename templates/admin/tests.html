@@ -1,0 +1,50 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Psikolojik Testler{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>Psikolojik Testler</h1>
+  </div>
+  <p class="admin-desc">Test soruları bilimsel envanterlerden uyarlanmıştır. Aktif/pasif durumunu buradan yönetebilirsiniz.</p>
+
+  <div class="admin-card">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Test</th>
+          <th>Kategori</th>
+          <th>Soru</th>
+          <th>Kaynak</th>
+          <th>Durum</th>
+          <th>İşlem</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for test in tests %}
+          <tr>
+            <td><strong>{{ test.icon }} {{ test.title }}</strong></td>
+            <td>{{ test.category }}</td>
+            <td>{{ test.question_list()|length }}</td>
+            <td>{{ test.source_note[:40] }}...</td>
+            <td>
+              {% if test.is_active %}<span class="badge badge-onaylandi">Aktif</span>
+              {% else %}<span class="badge badge-iptal">Pasif</span>{% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('test_landing', slug=test.slug) }}" class="btn btn-sm btn-outline" target="_blank">Görüntüle</a>
+              <a href="{{ url_for('admin_test_edit', id=test.id) }}" class="btn btn-sm btn-outline">Düzenle</a>
+              <form action="{{ url_for('admin_test_toggle', id=test.id) }}" method="POST" style="display:inline">
+                <button type="submit" class="btn btn-sm {% if test.is_active %}btn-outline{% else %}btn-primary{% endif %}">
+                  {% if test.is_active %}Pasifleştir{% else %}Aktifleştir{% endif %}
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

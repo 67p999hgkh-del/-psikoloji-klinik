@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% from 'partials/seo_hashtags.html' import render_hashtags with context %}
+
+{% block extra_head %}
+<style>
+  .tests-hub-hero { --test-accent: #2563eb; }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="tests-hub-hero">
+    <div class="container tests-hub-hero-grid">
+      <div class="tests-hub-copy">
+        <div class="tests-hub-pills">
+          <span>⏱️ {{ t('tests.pill_time') }}</span>
+          <span>👥 {{ t('tests.pill_scientific') }}</span>
+          <span>🎁 {{ t('tests.pill_free') }}</span>
+        </div>
+        <span class="tests-badge">{{ t('tests.badge') }}</span>
+        <h1>{{ t('tests.title') }}</h1>
+        <p>{{ t('tests.subtitle') }}</p>
+        <a href="#test-catalog" class="btn btn-primary btn-lg">{{ t('tests.explore') }}</a>
+      </div>
+      <div class="tests-hub-visual">
+        <div class="tests-phone-mock">
+          <div class="tests-phone-screen">
+            <span class="tests-phone-badge">Kişilik Profili</span>
+            <div class="tests-phone-score">78%</div>
+            <p>Dışadönüklük · Yüksek</p>
+            <div class="tests-phone-tags">
+              <span>Meraklı</span><span>Empatik</span><span>Organize</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="test-catalog">
+    <div class="container">
+      <div class="tests-hub-header">
+        <h2>{{ t('tests.all_title') }}</h2>
+        <p>{{ t('tests.all_sub', count=tests|length) }}</p>
+      </div>
+
+      <div class="tests-filter-pills tests-filter-pills-v2">
+        {% for group in test_groups %}
+          <button type="button" class="tests-filter {% if loop.first %}active{% endif %}" data-test-group="{{ group.id }}">
+            {% if group.icon %}<span class="tests-filter-icon">{{ group.icon }}</span>{% endif %}
+            {{ group.label }}
+          </button>
+        {% endfor %}
+      </div>
+
+      <div class="tests-grid tests-grid-v2">
+        {% for test in tests %}
+          <article class="test-card-v2" data-test-group="{{ test.test_group or 'mood' }}" style="--test-accent: {{ test.accent_color }}">
+            <div class="test-card-v2-top">
+              <span class="test-card-icon">{{ test.icon }}</span>
+              <span class="test-card-category">{{ test.category }}</span>
+            </div>
+            <h3>{{ test.hero_title or test.title }}</h3>
+            <p>{{ test.hero_subtitle or test.description }}</p>
+            <div class="test-card-meta">
+              <span>⏱ {{ test.estimated_minutes() }} dk</span>
+              <span>📝 {{ test.question_list()|length }} soru</span>
+            </div>
+            <a href="{{ url_for('test_landing', slug=test.slug) }}" class="btn btn-primary btn-block">{{ t('tests.go_test') }}</a>
+          </article>
+        {% else %}
+          <p class="empty-state">{{ t('tests.empty') }}</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="section tests-why-section">
+    <div class="container tests-why-grid">
+      <div>
+        <h2>{{ t('tests.why_title') }}</h2>
+        <ul class="tests-benefits-list">
+          <li><span>💼</span><div><strong>{{ t('tests.why_career') }}</strong><p>{{ t('tests.why_career_text') }}</p></div></li>
+          <li><span>💞</span><div><strong>{{ t('tests.why_relationships') }}</strong><p>{{ t('tests.why_relationships_text') }}</p></div></li>
+          <li><span>🌱</span><div><strong>{{ t('tests.why_growth') }}</strong><p>{{ t('tests.why_growth_text') }}</p></div></li>
+          <li><span>👩‍⚕️</span><div><strong>{{ t('tests.why_support') }}</strong><p>{{ t('tests.why_support_text') }}</p></div></li>
+        </ul>
+      </div>
+      <div class="tests-report-preview">
+        <div class="tests-report-card">
+          <h3>{{ t('tests.sample_report') }}</h3>
+          <div class="tests-report-bars">
+            <div><span>Kaygı</span><div class="bar"><span style="width:62%"></span></div></div>
+            <div><span>Stres</span><div class="bar"><span style="width:45%"></span></div></div>
+            <div><span>Özgüven</span><div class="bar"><span style="width:78%"></span></div></div>
+          </div>
+          <p class="tests-report-note">{{ t('tests.sample_note') }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tests-testimonials-section">
+    <div class="container">
+      <h2 class="text-center">{{ t('tests.social_title') }}</h2>
+      {% include 'partials/testimonials_carousel.html' %}
+      <div class="tests-social-proof">
+        <div><span>{{ t('tests.reviews') }}</span><strong>8.247</strong></div>
+        <div class="tests-social-stars">★★★★★</div>
+        <div><span>{{ t('tests.excellent') }}</span><strong>4.9</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="test-disclaimer">
+        <strong>{{ t('tests.important') }}</strong> {{ t('tests.disclaimer') }}
+      </div>
+      {{ render_hashtags(['#psikolojiktest', '#ucretsiztest', '#ruhsagligi', '#onlineTest']) }}
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/tests.js') }}"></script>
+{% endblock %}

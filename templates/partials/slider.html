@@ -1,0 +1,27 @@
+{% if slides %}
+<section class="hero-slider" id="heroSlider">
+  <div class="slider-track">
+    {% for slide in slides %}
+      <div class="slide {% if loop.first %}active{% endif %}" {% if slide.image_url %}style="background-image: url('{{ slide.image_url }}')"{% endif %}>
+        <div class="slide-overlay"></div>
+        <div class="container slide-content">
+          <h1>{{ slide.title }}</h1>
+          {% if slide.subtitle %}<p>{{ slide.subtitle }}</p>{% endif %}
+          {% if slide.button_link %}
+            <a href="{{ slide.button_link }}" class="btn btn-white">{{ slide.button_text or t('slider.detail') }}</a>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  {% if slides|length > 1 %}
+    <button class="slider-btn slider-prev" aria-label="{{ t('slider.prev') }}">‹</button>
+    <button class="slider-btn slider-next" aria-label="{{ t('slider.next') }}">›</button>
+    <div class="slider-dots">
+      {% for slide in slides %}
+        <button class="slider-dot {% if loop.first %}active{% endif %}" data-index="{{ loop.index0 }}"></button>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+{% endif %}

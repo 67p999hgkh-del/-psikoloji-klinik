@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ t('page.contact_title') }} — {{ site_name }}{% endblock %}
+
+{% block content %}
+  <section class="page-hero page-hero-color">
+    <div class="container">
+      <h1>{{ t('page.contact_title') }}</h1>
+      <p>{{ t('page.contact_sub') }}</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="contact-grid">
+        <div class="contact-info">
+          <div class="contact-card">
+            <span class="contact-icon">📍</span>
+            <h3>{{ t('contact.address') }}</h3>
+            <p>Bağdat Cad. No:123<br>Kadıköy / İstanbul</p>
+          </div>
+          <div class="contact-card">
+            <span class="contact-icon">📞</span>
+            <h3>{{ t('contact.phone') }}</h3>
+            <p>+90 216 000 0000</p>
+          </div>
+          <div class="contact-card">
+            <span class="contact-icon">✉️</span>
+            <h3>{{ t('contact.email') }}</h3>
+            <p>info@mindcare.com</p>
+          </div>
+        </div>
+        <div class="contact-form-wrap">
+          <h2>{{ t('contact.form_title') }}</h2>
+          <form class="appointment-form" onsubmit="event.preventDefault(); alert('{{ t('contact.sent_alert') }}');">
+            <div class="form-group">
+              <label>{{ t('contact.name') }}</label>
+              <input type="text" required>
+            </div>
+            <div class="form-group">
+              <label>{{ t('contact.email') }}</label>
+              <input type="email" required>
+            </div>
+            <div class="form-group">
+              <label>{{ t('contact.message') }}</label>
+              <textarea rows="5" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">{{ t('contact.send') }}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

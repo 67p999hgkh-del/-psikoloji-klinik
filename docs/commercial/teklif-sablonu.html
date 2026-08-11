@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Teklif Formu — Klinik Yönetim Platformu</title>
+  <style>
+    @page { margin: 18mm 15mm; size: A4; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 10.5pt; color: #1e293b; line-height: 1.5; max-width: 210mm; margin: 0 auto; padding: 12mm; }
+    h1 { font-size: 18pt; margin: 0 0 4px; color: #0f172a; }
+    h2 { font-size: 11pt; margin: 18px 0 8px; color: #2563eb; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+    .meta { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 9.5pt; color: #64748b; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 9.5pt; }
+    th, td { border: 1px solid #e2e8f0; padding: 6px 8px; text-align: left; vertical-align: top; }
+    th { background: #f8fafc; font-weight: 700; }
+    .total { font-size: 12pt; font-weight: 800; color: #1d4ed8; }
+    .check { margin: 3px 0; }
+    .note { font-size: 9pt; color: #64748b; margin-top: 16px; }
+    .sign { margin-top: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+    .sign-box { border-top: 1px solid #94a3b8; padding-top: 8px; font-size: 9.5pt; }
+    @media print { body { padding: 0; } .no-print { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="no-print" style="margin-bottom:16px;">
+    <button onclick="window.print()" style="padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;">Yazdır / PDF Kaydet</button>
+  </div>
+
+  <h1>Klinik Yönetim Platformu — Teklif Formu</h1>
+  <div class="meta">
+    <span>Teklif No: <strong>[TEKLIF-2026-001]</strong></span>
+    <span>Tarih: <strong>[GG.AA.YYYY]</strong></span>
+    <span>Geçerlilik: <strong>30 gün</strong></span>
+  </div>
+
+  <h2>Taraflar</h2>
+  <table>
+    <tr><th style="width:28%">Hizmet Sağlayıcı</th><td>[Şirket Adınız] · [E-posta] · [Telefon]</td></tr>
+    <tr><th>Müşteri (Klinik)</th><td>[Klinik Adı] · Yetkili: [Ad Soyad] · [E-posta]</td></tr>
+  </table>
+
+  <h2>Teklif Özeti</h2>
+  <table>
+    <tr><th>Seçilen Paket</th><td><strong>Profesyonel — Klinik Operasyon</strong></td></tr>
+    <tr><th>Kurulum bedeli</th><td>140.000 ₺ (KDV hariç)</td></tr>
+    <tr><th>Aylık hizmet bedeli</th><td>9.000 ₺/ay (KDV hariç)</td></tr>
+    <tr><th>Yıllık toplam (peşin, %15 indirim)</th><td class="total">211.800 ₺</td></tr>
+  </table>
+
+  <h2>Paket Kapsamı</h2>
+  <div class="check">☑ Kurumsal web sitesi &amp; online randevu</div>
+  <div class="check">☑ Terapist paneli &amp; danışan portalı</div>
+  <div class="check">☑ Seans çalışma alanı (SOAP/DAP, risk, ödev)</div>
+  <div class="check">☑ Blog &amp; Slider CMS · Psikolojik testler</div>
+  <div class="check">☑ Randevu operasyon merkezi · Fatura takibi</div>
+  <div class="check">☑ PsikoPlan temel analitik · Mobil admin</div>
+  <div class="check">☐ Sosyal Medya Hub (Kurumsal pakete yükseltme)</div>
+  <div class="check">☐ Widget CMS (Kurumsal pakete yükseltme)</div>
+
+  <h2>Limitler</h2>
+  <table>
+    <tr><th>Terapist</th><th>Şube</th><th>Depolama</th><th>Eğitim</th></tr>
+    <tr><td>max 10</td><td>max 2</td><td>20 GB</td><td>2 saat (uzaktan)</td></tr>
+  </table>
+
+  <h2>Ödeme Planı</h2>
+  <table>
+    <tr><th>Aşama</th><th>Oran</th><th>Tutar</th></tr>
+    <tr><td>Sözleşme imzası</td><td>%40</td><td>56.000 ₺</td></tr>
+    <tr><td>Canlıya alma</td><td>%40</td><td>56.000 ₺</td></tr>
+    <tr><td>30 gün stabilizasyon sonrası</td><td>%20</td><td>28.000 ₺</td></tr>
+    <tr><td>Aylık hizmet (devam)</td><td>—</td><td>9.000 ₺/ay</td></tr>
+  </table>
+
+  <h2>Onay</h2>
+  <div class="sign">
+    <div class="sign-box">Müşteri adı &amp; imza<br><br>_________________________<br>Tarih: _______________</div>
+    <div class="sign-box">Sağlayıcı adı &amp; imza<br><br>_________________________<br>Tarih: _______________</div>
+  </div>
+
+  <p class="note">Bu teklif 30 gün geçerlidir. Fiyatlar KDV hariçtir. Detaylı sözleşme maddeleri için sozlesme-maddeleri.md dosyasına bakınız.</p>
+</body>
+</html>

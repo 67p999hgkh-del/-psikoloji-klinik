@@ -1,0 +1,78 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}{% if post %}Yazı Düzenle{% else %}Yazı Ekle{% endif %}{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>{% if post %}Yazı Düzenle{% else %}Yeni Yazı{% endif %}</h1>
+    <a href="{{ url_for('admin_blog') }}" class="btn btn-outline">← Geri</a>
+  </div>
+
+  <div class="admin-card">
+    <form method="POST" class="admin-form">
+      <div class="form-group">
+        <label>Başlık *</label>
+        <input type="text" name="title" value="{{ post.title if post else '' }}" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Slug (URL) *</label>
+          <input type="text" name="slug" value="{{ post.slug if post else '' }}" required>
+        </div>
+        <div class="form-group">
+          <label>Yazar *</label>
+          <input type="text" name="author" value="{{ post.author if post else '' }}" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Kategori</label>
+          <select name="category">
+            {% for cat in blog_categories %}
+              <option value="{{ cat }}" {% if post and post.category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Öne Çıkan Görsel URL</label>
+          <input type="url" name="featured_image" value="{{ post.featured_image if post else '' }}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Etiketler (hashtag) *</label>
+        <input type="text" name="tags" value="{{ post.tags if post else '' }}" placeholder="#psikoloji #terapi #ruhsagligi">
+        <small class="form-hint">SEO için hashtag formatında yazın: #etiket1 #etiket2</small>
+      </div>
+      <div class="form-group">
+        <label>Özet *</label>
+        <textarea name="excerpt" rows="2" required>{{ post.excerpt if post else '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label>İçerik (HTML destekli) *</label>
+        <textarea name="content" rows="12" required>{{ post.content if post else '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label>SEO Başlık</label>
+        <input type="text" name="seo_title" value="{{ post.seo_title if post else '' }}">
+      </div>
+      <div class="form-group">
+        <label>SEO Açıklama</label>
+        <textarea name="seo_description" rows="2">{{ post.seo_description if post else '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label>SEO Hashtag / Anahtar Kelimeler</label>
+        <input type="text" name="seo_keywords" value="{{ post.seo_keywords if post else '' }}" placeholder="#psikoloji #terapi #ruhsagligi">
+        <small class="form-hint">Etiketlerden ayrı ek SEO hashtagleri (isteğe bağlı)</small>
+      </div>
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" name="is_published" {% if post and post.is_published %}checked{% endif %}>
+          Yayınla
+        </label>
+      </div>
+      <button type="submit" class="btn btn-primary">Kaydet</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

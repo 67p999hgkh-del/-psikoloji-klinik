@@ -1,0 +1,46 @@
+{% macro blog_sidebar(sidebar_recent, sidebar_categories, sidebar_tags, active_category=None, active_tag=None) %}
+<aside class="blog-sidebar">
+  <div class="sidebar-widget">
+    <h3>{{ t('blog.search') }}</h3>
+    <form action="{{ url_for('blog_list') }}" method="GET" class="sidebar-search">
+      <input type="text" name="kategori" placeholder="{{ t('blog.filter_category') }}" value="{{ active_category or '' }}">
+      <button type="submit" class="btn btn-primary btn-sm">{{ t('blog.search') }}</button>
+    </form>
+  </div>
+
+  <div class="sidebar-widget">
+    <h3>{{ t('blog.categories') }}</h3>
+    <ul class="sidebar-list">
+      <li><a href="{{ url_for('blog_list') }}" class="{% if not active_category and not active_tag %}active{% endif %}">{{ t('blog.all') }}</a></li>
+      {% for cat, count in sidebar_categories %}
+        <li>
+          <a href="{{ url_for('blog_list', kategori=cat) }}" class="{% if active_category == cat %}active{% endif %}">
+            {{ cat }} <span>({{ count }})</span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <div class="sidebar-widget">
+    <h3>{{ t('blog.sidebar_tags') }}</h3>
+    <div class="tag-cloud">
+      {% for tag in sidebar_tags %}
+        <a href="{{ url_for('blog_by_tag', tag_slug=tag.lstrip('#').lower()) }}" class="tag {% if active_tag == tag.lstrip('#').lower() %}active{% endif %}">{{ tag }}</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="sidebar-widget">
+    <h3>{{ t('blog.recent') }}</h3>
+    <ul class="sidebar-posts">
+      {% for post in sidebar_recent %}
+        <li>
+          <a href="{{ url_for('blog_detail', slug=post.slug) }}">{{ post.title }}</a>
+          <span>{{ post.created_at.strftime('%d.%m.%Y') }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</aside>
+{% endmacro %}

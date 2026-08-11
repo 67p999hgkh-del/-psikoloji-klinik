@@ -1,0 +1,39 @@
+<section class="home-extras-split">
+  <div class="container home-extras-stack">
+    <div class="info-carousel-panel info-carousel-slim" data-info-carousel>
+      <div class="info-carousel-viewport">
+        <div class="info-carousel-track">
+          {% for slide in info_slides %}
+            <article class="info-slide">
+              <div class="info-slide-icon">💡</div>
+              <div class="info-slide-body">
+                <h3>{{ slide.title }}</h3>
+                <p>{{ slide.text }}</p>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="info-carousel-dots" data-info-dots></div>
+    </div>
+
+    <div class="booking-steps-box">
+      <div class="booking-steps-header">
+        <h2>{{ t('home.booking_title') }}</h2>
+        <p>{{ t('home.booking_sub') }}</p>
+      </div>
+      <div class="booking-steps-scroll">
+        <div class="booking-steps-row">
+          {% for step in booking_steps %}
+            <article class="booking-step-card" style="--step-color: {{ step.color }}">
+              <div class="booking-step-icon">{{ step.icon }}</div>
+              <h3>{{ step.title }}</h3>
+              <p>{{ step.text }}</p>
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="booking-steps-note">{% include 'partials/privacy_badge.html' %}</div>
+    </div>
+  </div>
+</section>

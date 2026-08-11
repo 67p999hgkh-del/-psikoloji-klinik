@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% from 'partials/appointment_calendar.html' import appointment_calendar with context %}
+{% from 'partials/person_photo.html' import person_photo %}
+{% from 'partials/therapist_badges.html' import therapist_badges with context %}
+
+{% block content %}
+  <section class="page-hero page-hero-color">
+    <div class="container">
+      <h1>{{ t('page.appointment_title') }}</h1>
+      <p>{{ t('page.appointment_sub') }}</p>
+      <div class="privacy-badge-wrap privacy-badge-wrap-center">{% include 'partials/privacy_badge.html' %}</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      {% if not selected %}
+        {% include 'partials/session_options_strip.html' %}
+
+        {% set filter_action = url_for('appointment_page') %}
+        {% set filter_button = t('search.search_btn') %}
+        {% include 'partials/therapist_filter_bar.html' %}
+
+        <div class="therapist-select-grid">
+          {% for t_item in therapists %}
+            <a href="{{ url_for('appointment_page', slug=t_item.slug, session_type=session_type|default('yuz_yuze')) }}" class="therapist-select-card">
+              {{ person_photo(t_item, '') }}
+              {{ therapist_badges(t_item) }}
+              <h3>{{ t_item.name }}</h3>
+              <p>{{ t_item.title }}</p>
+              <p class="therapist-city">📍 {{ t_item.city or 'İstanbul' }}</p>
+              <span class="link-arrow">{{ t('apt.calendar_link') }}</span>
+            </a>
+          {% else %}
+            <p class="empty-state">{{ t('search.no_results') }}</p>
+          {% endfor %}
+        </div>
+      {% else %}
+        <form action="{{ url_for('create_appointment') }}" method="POST" class="appointment-form" id="appointmentForm">
+          <input type="hidden" name="therapist_id" value="{{ selected.id }}">
+          <div class="appointment-layout">
+            <div class="appointment-panel">
+              <div class="panel-header">
+                {{ person_photo(selected, '') }}
+                <div>
+                  <h2>{{ selected.name }}</h2>
+                  <p>{{ selected.title }} · 📍 {{ selected.city or 'İstanbul' }}</p>
+                </div>
+                <a href="{{ url_for('appointment_page', city=selected_city, q=search_q, session_type=session_type|default('yuz_yuze')) }}" class="btn btn-outline btn-sm">{{ t('apt.change_therapist') }}</a>
+              </div>
+              {{ appointment_calendar(selected) }}
+            </div>
+            <div class="appointment-panel">
+              <h3>{{ t('apt.patient_info') }}</h3>
+              <div class="selected-slot-info" id="selectedSlotInfo">{{ t('apt.no_slot') }}</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="patient_name">{{ t('apt.name') }}</label>
+                  <input type="text" id="patient_name" name="patient_name" required>
+                </div>
+                <div class="form-group">
+                  <label for="patient_email">{{ t('apt.email') }}</label>
+                  <input type="email" id="patient_email" name="patient_email" required>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="patient_phone">{{ t('apt.phone') }}</label>
+                  <input type="tel" id="patient_phone" name="patient_phone" required>
+                </div>
+                <div class="form-group">
+                  <label for="session_type">{{ t('apt.session_type') }}</label>
+                  <select id="session_type" name="session_type">
+                    <option value="yuz_yuze" {% if session_type|default('yuz_yuze') != 'online' %}selected{% endif %}>{{ t('apt.in_person') }}</option>
+                    <option value="online" {% if session_type|default('yuz_yuze') == 'online' %}selected{% endif %} {% if not selected.supports_online %}disabled{% endif %}>{{ t('apt.online') }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="notes">{{ t('apt.notes') }}</label>
+                <textarea id="notes" name="notes" rows="3"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-lg btn-block" id="submitBtn" disabled>{{ t('apt.submit') }}</button>
+            </div>
+          </div>
+        </form>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+{% if not selected %}
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+{% elif selected %}
+<script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+{% endif %}
+{% endblock %}

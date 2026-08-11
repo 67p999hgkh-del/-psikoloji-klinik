@@ -1,0 +1,123 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}{% if therapist %}Terapist Düzenle{% else %}Terapist Ekle{% endif %}{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>{% if therapist %}Terapist Düzenle{% else %}Yeni Terapist{% endif %}</h1>
+    <a href="{{ url_for('admin_therapists') }}" class="btn btn-outline">← Geri</a>
+  </div>
+
+  <div class="admin-card">
+    <form method="POST" class="admin-form" enctype="multipart/form-data">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Ad Soyad *</label>
+          <input type="text" name="name" value="{{ therapist.name if therapist else '' }}" required>
+        </div>
+        <div class="form-group">
+          <label>Unvan *</label>
+          <input type="text" name="title" value="{{ therapist.title if therapist else '' }}" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Slug (URL) *</label>
+          <input type="text" name="slug" value="{{ therapist.slug if therapist else '' }}" required placeholder="ornek-terapist">
+        </div>
+        <div class="form-group">
+          <label>Şehir *</label>
+          <select name="city" required>
+            {% for city in popular_cities %}
+              <option value="{{ city }}" {% if therapist and therapist.city == city %}selected{% elif not therapist and city == 'İstanbul' %}selected{% endif %}>{{ city }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Sıra</label>
+          <input type="number" name="sort_order" value="{{ therapist.sort_order if therapist else 0 }}">
+        </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" name="supports_online" {% if not therapist or therapist.supports_online %}checked{% endif %}>
+            Online görüşme sunuyor
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Konuşulan Diller</label>
+        <div class="checkbox-group">
+          {% for code, label in [('tr', 'Türkçe'), ('en', 'English'), ('de', 'Deutsch')] %}
+            <label class="checkbox-label">
+              <input type="checkbox" name="languages_spoken" value="{{ code }}" {% if therapist and code in therapist.language_codes() %}checked{% elif not therapist and code == 'tr' %}checked{% endif %}>
+              {{ label }}
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Biyografi *</label>
+        <textarea name="bio" rows="4" required>{{ therapist.bio if therapist else '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label>Uzmanlık Alanları *</label>
+        <input type="text" name="specialties" value="{{ therapist.specialties if therapist else '' }}" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>E-posta *</label>
+          <input type="email" name="email" value="{{ therapist.email if therapist else '' }}" required>
+        </div>
+        <div class="form-group">
+          <label>Telefon *</label>
+          <input type="text" name="phone" value="{{ therapist.phone if therapist else '' }}" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Profil Görseli Yükle</label>
+          <input type="file" name="photo_file" accept="image/png,image/jpeg,image/webp,image/gif">
+          <small class="form-hint">Görsel yoksa sitede baş harf avatarı gösterilir. PNG, JPG, WEBP veya GIF — max 5 MB</small>
+        </div>
+        <div class="form-group">
+          <label>veya Fotoğraf URL</label>
+          <input type="url" name="photo_url" value="{% if therapist and therapist.photo and therapist.photo.startswith('http') %}{{ therapist.photo }}{% endif %}" placeholder="https://...">
+        </div>
+      </div>
+      {% if therapist and therapist.photo and therapist.photo != 'default.jpg' and not therapist.photo.startswith('http') %}
+        <div class="photo-preview"><img src="{{ url_for('static', filename=therapist.photo) }}" alt="" class="person-photo therapist-avatar-lg"></div>
+      {% elif therapist and therapist.photo and therapist.photo.startswith('http') %}
+        <div class="photo-preview"><img src="{{ therapist.photo }}" alt="" class="person-photo therapist-avatar-lg"></div>
+      {% endif %}
+      <div class="form-group">
+        <label>Harici Takvim URL (iCal import — Google/Outlook)</label>
+        <input type="url" name="ical_import_url" value="{{ therapist.ical_import_url if therapist else '' }}" placeholder="https://calendar.google.com/calendar/ical/.../basic.ics">
+        <small class="form-hint">Bu takvimdeki dolu günler randevu takviminde otomatik kapatılır.</small>
+      </div>
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" name="is_active" {% if not therapist or therapist.is_active %}checked{% endif %}>
+          Aktif
+        </label>
+      </div>
+      <button type="submit" class="btn btn-primary">Kaydet</button>
+    </form>
+  </div>
+
+  {% if therapist and therapist.calendar_token %}
+  <div class="admin-card" style="margin-top:1.5rem;padding:1.5rem;">
+    <h3>Takvim Senkronizasyonu</h3>
+    <p class="admin-desc">Randevuları Google Calendar, Outlook veya Apple Calendar ile senkronize edin.</p>
+    {% set ical_url = url_for('therapist_ical_feed', token=therapist.calendar_token, _external=True) %}
+    {% set webcal_url = ical_url.replace('https://', 'webcal://').replace('http://', 'webcal://') %}
+    <ul class="sync-links">
+      <li><strong>Dışa aktarma (iCal):</strong> <a href="{{ ical_url }}" target="_blank">{{ ical_url }}</a></li>
+      <li><strong>Google Calendar:</strong> <a href="https://calendar.google.com/calendar/r?cid={{ webcal_url | urlencode }}" target="_blank">Takvime abone ol</a></li>
+    </ul>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

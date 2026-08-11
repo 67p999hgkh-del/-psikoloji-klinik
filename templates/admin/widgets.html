@@ -1,0 +1,38 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Widgetlar{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <h1>Widget Yönetimi</h1>
+    <a href="{{ url_for('admin_widget_add') }}" class="btn btn-primary">+ Widget Ekle</a>
+  </div>
+
+  <p class="admin-desc">Ana sayfada görünen modülleri buradan yönetebilirsiniz. Sıralama, aktif/pasif durumu ve içerik düzenlenebilir.</p>
+
+  <div class="widget-grid">
+    {% for w in widgets %}
+      <div class="widget-card {% if not w.is_active %}widget-inactive{% endif %}">
+        <div class="widget-card-header">
+          <span class="widget-type">{{ widget_types.get(w.widget_type, w.widget_type) }}</span>
+          <span class="widget-order">#{{ w.sort_order }}</span>
+        </div>
+        <h3>{{ w.title }}</h3>
+        <pre class="widget-preview">{{ w.content[:120] }}{% if w.content|length > 120 %}...{% endif %}</pre>
+        <div class="widget-card-actions">
+          <form action="{{ url_for('admin_widget_toggle', id=w.id) }}" method="POST">
+            <button type="submit" class="btn btn-sm {% if w.is_active %}btn-outline{% else %}btn-primary{% endif %}">
+              {% if w.is_active %}Pasifleştir{% else %}Aktifleştir{% endif %}
+            </button>
+          </form>
+          <a href="{{ url_for('admin_widget_edit', id=w.id) }}" class="btn btn-sm btn-outline">Düzenle</a>
+          <form action="{{ url_for('admin_widget_delete', id=w.id) }}" method="POST" onsubmit="return confirm('Silmek istediğinize emin misiniz?')">
+            <button type="submit" class="btn btn-sm btn-danger">Sil</button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

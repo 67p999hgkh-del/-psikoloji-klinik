@@ -1,0 +1,391 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Seans Kayıtları{% endblock %}
+
+{% block content %}
+<div class="admin-page sessions-page">
+  <div class="admin-header">
+    <div>
+      <h1>Seans Kayıtları</h1>
+      <p>{{ total }} kayıt listeleniyor · klinik süreç takibi</p>
+    </div>
+    <div class="admin-header-actions">
+      <a href="{{ url_for('admin_session_new') }}" class="btn btn-primary btn-sm">
+        <span class="btn-dot"></span> Seans Kaydı
+      </a>
+      <a href="{{ url_for('admin_note_new') }}" class="btn btn-outline btn-sm">
+        <span class="btn-dot btn-dot-muted"></span> Terapist Notu
+      </a>
+      <a href="{{ url_for('admin_sessions_export', **query_args) }}" class="btn btn-ghost btn-sm">Dışa Aktar</a>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="window.print()">Yazdır</button>
+    </div>
+  </div>
+
+  <div class="stat-cards">
+    {% for card in stat_cards %}
+      <article class="stat-card">
+        <div class="stat-card-top">
+          <span class="stat-icon">{{ card.icon }}</span>
+          {% if card.delta is not none %}
+            {% set positive = (card.delta < 0) if card.invert else (card.delta >= 0) %}
+            <span class="stat-delta {{ 'up' if positive else 'down' }}">
+              {{ '▲' if card.delta >= 0 else '▼' }} {{ card.delta|abs }}%
+            </span>
+          {% endif %}
+        </div>
+        <strong class="stat-value">{{ card.value }}</strong>
+        <span class="stat-label">{{ card.label }}</span>
+        <small class="stat-hint">{{ card.hint }}</small>
+      </article>
+    {% endfor %}
+  </div>
+
+  <form method="GET" class="filter-bar sessions-filter">
+    <div class="filter-field filter-grow">
+      <label for="q">Ara</label>
+      <input type="search" id="q" name="q" value="{{ filters.q }}" placeholder="Danışan, e-posta veya not">
+    </div>
+    <div class="filter-field">
+      <label for="from">Başlangıç</label>
+      <input type="date" id="from" name="from" value="{{ filters['from'] }}">
+    </div>
+    <div class="filter-field">
+      <label for="to">Bitiş</label>
+      <input type="date" id="to" name="to" value="{{ filters.to }}">
+    </div>
+    {% if not is_therapist_view %}
+      <div class="filter-field">
+        <label for="therapist_id">Terapist</label>
+        <select id="therapist_id" name="therapist_id">
+          <option value="">Tümü</option>
+          {% for t in therapists %}
+            <option value="{{ t.id }}" {% if filters.therapist_id == t.id %}selected{% endif %}>{{ t.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    {% endif %}
+    <div class="filter-field">
+      <label for="city">Şube</label>
+      <select id="city" name="city">
+        <option value="">Tümü</option>
+        {% for c in cities %}
+          <option value="{{ c }}" {% if filters.city == c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-field">
+      <label for="reason">Başvuru nedeni</label>
+      <select id="reason" name="reason">
+        <option value="">Tümü</option>
+        {% for r in reasons %}
+          <option value="{{ r }}" {% if filters.reason == r %}selected{% endif %}>{{ r }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-field">
+      <label for="status">Durum</label>
+      <select id="status" name="status">
+        <option value="">Tümü</option>
+        {% for key, label in status_labels.items() %}
+          <option value="{{ key }}" {% if filters.status == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-field">
+      <label for="session_type">Tür</label>
+      <select id="session_type" name="session_type">
+        <option value="">Tümü</option>
+        {% for key, label in type_labels.items() %}
+          <option value="{{ key }}" {% if filters.session_type == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-actions">
+      <button type="submit" class="btn btn-sm btn-primary">Filtrele</button>
+      <a href="{{ url_for('admin_sessions') }}" class="btn btn-sm btn-ghost">Temizle</a>
+    </div>
+  </form>
+
+  <div class="admin-card table-card">
+    <div class="admin-card-header">
+      <h2>Seans listesi</h2>
+      <span class="muted">Sayfa {{ page }} / {{ pages }} · satıra tıklayarak detay panelini açın</span>
+    </div>
+    <div class="table-wrap table-sticky">
+      <table class="admin-table data-table session-table">
+        <thead>
+          <tr>
+            <th>Tarih</th>
+            <th>Danışan</th>
+            {% if not is_therapist_view %}<th>Terapist</th>{% endif %}
+            <th>Şube</th>
+            <th>Başvuru Nedeni</th>
+            <th>Risk Seviyesi</th>
+            <th>Durum</th>
+            <th>Sonraki Seans</th>
+            <th>Ödeme Durumu</th>
+            <th class="col-actions">İşlemler</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in sessions %}
+            {% set pay = payments.get((s.patient_email or '')|lower, 'yok') %}
+            <tr class="row-clickable" data-session-id="{{ s.id }}" tabindex="0">
+              <td>
+                <div class="cell-stack">
+                  <strong>{{ s.created_at.strftime('%d.%m.%Y') if s.created_at else '—' }}</strong>
+                  <small class="muted">
+                    {{ s.created_at.strftime('%H:%M') if s.created_at else '' }}
+                    · <span class="type-tag type-{{ s.session_type }}">{{ s.session_type_label }}</span>
+                  </small>
+                </div>
+              </td>
+              <td>
+                <div class="cell-person">
+                  <span class="avatar-initials">{{ (s.patient_name or s.patient_email or '?')[:2]|upper }}</span>
+                  <span class="cell-person-text">
+                    <strong>{{ s.patient_name or s.patient_email or 'Bilinmiyor' }}</strong>
+                    <small>{{ s.patient_email }}</small>
+                  </span>
+                </div>
+              </td>
+              {% if not is_therapist_view %}
+                <td>{{ s.therapist.name if s.therapist else '—' }}</td>
+              {% endif %}
+              <td>{{ s.city or '—' }}</td>
+              <td>
+                <div class="reason-tags">
+                  {% for reason in s.reason_list()[:2] %}
+                    <span class="reason-tag">{{ reason }}</span>
+                  {% endfor %}
+                  {% if s.reason_list()|length > 2 %}
+                    <span class="reason-tag reason-more">+{{ s.reason_list()|length - 2 }}</span>
+                  {% endif %}
+                  {% if not s.reason_list() %}<span class="muted">—</span>{% endif %}
+                </div>
+              </td>
+              <td><span class="badge-soft risk-{{ s.risk_level }}">{{ s.risk_label }}</span></td>
+              <td><span class="badge-soft state-{{ s.status }}">{{ s.status_label }}</span></td>
+              <td>
+                {% if s.next_session_date %}
+                  <strong>{{ s.next_session_date.strftime('%d.%m.%Y') }}</strong>
+                {% else %}
+                  <span class="muted">Planlanmadı</span>
+                {% endif %}
+              </td>
+              <td><span class="badge-soft pay-{{ pay }}">{{ payment_labels.get(pay) }}</span></td>
+              <td class="col-actions">
+                <div class="actions">
+                  <button type="button" class="btn btn-sm btn-outline js-open-drawer" data-session-id="{{ s.id }}">Detay</button>
+                </div>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="{% if is_therapist_view %}9{% else %}10{% endif %}" class="empty">
+                <strong>Seans kaydı bulunamadı</strong>
+                <span>Filtreleri değiştirin veya yeni bir seans kaydı oluşturun.</span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if pages > 1 %}
+      <div class="table-pagination">
+        {% if page > 1 %}
+          <a href="{{ url_for('admin_sessions', page=page-1, **query_args) }}" class="btn btn-sm btn-ghost">← Önceki</a>
+        {% endif %}
+        <div class="pagination-pages">
+          {% for p in range(1, pages + 1) %}
+            {% if p == 1 or p == pages or (p >= page - 1 and p <= page + 1) %}
+              <a href="{{ url_for('admin_sessions', page=p, **query_args) }}" class="page-dot {% if p == page %}active{% endif %}">{{ p }}</a>
+            {% elif p == page - 2 or p == page + 2 %}
+              <span class="page-gap">…</span>
+            {% endif %}
+          {% endfor %}
+        </div>
+        {% if page < pages %}
+          <a href="{{ url_for('admin_sessions', page=page+1, **query_args) }}" class="btn btn-sm btn-ghost">Sonraki →</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="drawer-overlay" id="drawerOverlay" hidden></div>
+<aside class="drawer" id="sessionDrawer" hidden aria-labelledby="drawerTitle">
+  <header class="drawer-head">
+    <div>
+      <span class="drawer-eyebrow">Seans Detayı</span>
+      <h2 id="drawerTitle">Yükleniyor…</h2>
+      <p class="drawer-sub" id="drawerSub"></p>
+    </div>
+    <button type="button" class="drawer-close" id="drawerClose" aria-label="Kapat">×</button>
+  </header>
+  <div class="drawer-body" id="drawerBody">
+    <div class="drawer-loading">Kayıt yükleniyor…</div>
+  </div>
+</aside>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    const drawer = document.getElementById('sessionDrawer');
+    const overlay = document.getElementById('drawerOverlay');
+    const body = document.getElementById('drawerBody');
+    const title = document.getElementById('drawerTitle');
+    const sub = document.getElementById('drawerSub');
+    if (!drawer) return;
+
+    const esc = (value) => String(value == null ? '' : value)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    function section(heading, inner, badge) {
+      return `<section class="drawer-section">
+        <h3>${esc(heading)}${badge ? `<span class="drawer-count">${esc(badge)}</span>` : ''}</h3>
+        ${inner}
+      </section>`;
+    }
+
+    function emptyNote(text) {
+      return `<p class="drawer-empty">${esc(text)}</p>`;
+    }
+
+    function render(data) {
+      title.textContent = data.client.name || 'Danışan';
+      sub.textContent = `${data.session.date} · ${data.session.type} · ${data.session.duration || '—'} dk`;
+
+      const info = `<div class="drawer-grid">
+        <div><span>E-posta</span><strong>${esc(data.client.email || '—')}</strong></div>
+        <div><span>Telefon</span><strong>${esc(data.client.phone || '—')}</strong></div>
+        <div><span>Şube</span><strong>${esc(data.client.city || '—')}</strong></div>
+        <div><span>Terapist</span><strong>${esc(data.client.therapist)}</strong></div>
+        <div><span>Üyelik</span><strong>${esc(data.client.membership_status)}</strong></div>
+        <div><span>Sonraki seans</span><strong>${esc(data.session.next_session || 'Planlanmadı')}</strong></div>
+      </div>
+      <div class="drawer-badges">
+        <span class="badge-soft risk-${esc(data.session.risk_key)}">${esc(data.session.risk)}</span>
+        <span class="badge-soft state-${esc(data.session.status_key)}">${esc(data.session.status)}</span>
+        ${(data.session.reasons || []).map((r) => `<span class="reason-tag">${esc(r)}</span>`).join('')}
+      </div>
+      ${data.session.note ? `<p class="drawer-note">${esc(data.session.note)}</p>` : ''}`;
+
+      const ai = `<div class="drawer-ai">
+        <p>${esc(data.ai_summary.text)}</p>
+        <small>Kural tabanlı otomatik özet · klinik karar yerine geçmez.</small>
+      </div>`;
+
+      const history = (data.history || []).length
+        ? `<ul class="drawer-timeline">${data.history.map((h) => `
+            <li class="${h.current ? 'current' : ''}">
+              <div class="timeline-dot"></div>
+              <div>
+                <strong>${esc(h.date)}</strong>
+                <small>${esc(h.therapist)} · ${esc(h.status)} · ${esc(h.risk)}</small>
+                ${h.reasons.length ? `<div class="drawer-badges">${h.reasons.map((r) => `<span class="reason-tag">${esc(r)}</span>`).join('')}</div>` : ''}
+              </div>
+            </li>`).join('')}</ul>`
+        : emptyNote('Başka seans kaydı yok.');
+
+      const tests = (data.tests || []).length
+        ? `<ul class="drawer-list">${data.tests.map((t) => `
+            <li><span>${esc(t.title)}</span><strong>${esc(t.level)} · ${esc(t.score)}</strong><small>${esc(t.date)}</small></li>`).join('')}</ul>`
+        : emptyNote('Danışana ait test sonucu yok.');
+
+      const notes = (data.notes || []).length
+        ? `<ul class="drawer-notes">${data.notes.map((n) => `
+            <li>
+              <div class="drawer-note-head"><strong>${esc(n.date)}</strong><small>${esc(n.therapist)}${n.visible ? ' · danışan görebilir' : ''}</small></div>
+              <p>${esc(n.body)}</p>
+            </li>`).join('')}</ul>`
+        : emptyNote('Terapist notu eklenmemiş.');
+
+      const files = (data.files || []).length
+        ? `<ul class="drawer-list">${data.files.map((f) => `<li><span>${esc(f.name)}</span><small>${esc(f.date)}</small></li>`).join('')}</ul>`
+        : emptyNote('Bu danışan için yüklenmiş dosya bulunmuyor.');
+
+      const payments = (data.payments || []).length
+        ? `<ul class="drawer-list">${data.payments.map((p) => `
+            <li><span>${esc(p.description || 'Seans ücreti')}</span><strong>${esc(p.amount)}</strong>
+              <small><span class="badge-soft pay-${p.status_key === 'odendi' ? 'odendi' : 'bekliyor'}">${esc(p.status)}</span> ${esc(p.date)}</small></li>`).join('')}</ul>`
+        : emptyNote('Fatura kaydı yok.');
+
+      const next = data.next_appointment
+        ? `<div class="drawer-next">
+            <strong>${esc(data.next_appointment.date)} · ${esc(data.next_appointment.time)}</strong>
+            <small>${esc(data.next_appointment.therapist)} · ${esc(data.next_appointment.type)} · ${esc(data.next_appointment.status)}</small>
+          </div>`
+        : emptyNote('Yaklaşan randevu yok.');
+
+      body.innerHTML = [
+        section('Danışan Bilgileri', info),
+        section('AI Seans Özeti', ai),
+        section('Seans Geçmişi', history, (data.history || []).length),
+        section('Kullanılan Testler', tests, (data.tests || []).length),
+        section('Terapist Notları', notes, (data.notes || []).length),
+        section('Dosyalar', files, (data.files || []).length),
+        section('Ödeme Geçmişi', payments, (data.payments || []).length),
+        section('Sonraki Randevu', next)
+      ].join('');
+    }
+
+    function openDrawer(id) {
+      drawer.hidden = false;
+      overlay.hidden = false;
+      requestAnimationFrame(() => {
+        drawer.classList.add('open');
+        overlay.classList.add('open');
+      });
+      document.body.classList.add('drawer-open');
+      title.textContent = 'Yükleniyor…';
+      sub.textContent = '';
+      body.innerHTML = '<div class="drawer-loading">Kayıt yükleniyor…</div>';
+      setTimeout(() => document.getElementById('drawerClose').focus(), 60);
+
+      fetch(`/admin/seans/${id}/detay`, { headers: { 'X-Requested-With': 'fetch' } })
+        .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+        .then(render)
+        .catch(() => {
+          title.textContent = 'Kayıt yüklenemedi';
+          body.innerHTML = '<p class="drawer-empty">Detay bilgisi alınamadı. Sayfayı yenileyip tekrar deneyin.</p>';
+        });
+    }
+
+    function closeDrawer() {
+      drawer.classList.remove('open');
+      overlay.classList.remove('open');
+      document.body.classList.remove('drawer-open');
+      setTimeout(() => {
+        drawer.hidden = true;
+        overlay.hidden = true;
+      }, 220);
+    }
+
+    document.querySelectorAll('tr.row-clickable').forEach((row) => {
+      row.addEventListener('click', (event) => {
+        if (event.target.closest('a, button, form, input, select')) return;
+        openDrawer(row.dataset.sessionId);
+      });
+      row.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') openDrawer(row.dataset.sessionId);
+      });
+    });
+
+    document.querySelectorAll('.js-open-drawer').forEach((btn) => {
+      btn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        openDrawer(btn.dataset.sessionId);
+      });
+    });
+
+    document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+    overlay.addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !drawer.hidden) closeDrawer();
+    });
+  })();
+</script>
+{% endblock %}

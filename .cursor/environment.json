@@ -1,0 +1,6 @@
+{
+  "name": "Psikoloji Klinik",
+  "install": "python3 -m venv .venv && .venv/bin/pip install -r requirements.txt",
+  "start": "bash start-all.sh",
+  "terminals": []
+}

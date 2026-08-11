@@ -1,0 +1,19 @@
+{% macro therapist_badges(therapist) %}
+  <div class="therapist-badges">
+    {% if therapist.supports_online %}
+      <span class="therapist-badge therapist-badge-online">{{ t('therapist.online') }}</span>
+    {% endif %}
+    <span class="therapist-badge therapist-badge-inperson">{{ t('therapist.in_person') }}</span>
+  </div>
+{% endmacro %}
+
+{% macro therapist_languages(therapist) %}
+  {% if therapist.language_codes() %}
+    <div class="therapist-languages">
+      <strong>{{ t('therapist.languages') }}:</strong>
+      {% for code in therapist.language_codes() %}
+        <span class="therapist-lang-chip">{{ t('lang.' ~ code) }}</span>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endmacro %}

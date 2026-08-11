@@ -1,0 +1,169 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Kullanıcılar{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <div>
+      <h1>Kullanıcılar</h1>
+      <p>Danışan, terapist ve yönetici hesaplarını ayrı yönetin.</p>
+    </div>
+    <a href="{{ url_for('admin_user_add') }}" class="btn btn-primary">+ Kullanıcı Ekle</a>
+  </div>
+
+  <div class="user-tabs">
+    <a href="{{ url_for('admin_users', tab='clients') }}" class="user-tab {% if tab == 'clients' %}active{% endif %}">
+      <span>Danışanlar</span>
+      <strong>{{ counts.clients }}</strong>
+    </a>
+    <a href="{{ url_for('admin_users', tab='therapists') }}" class="user-tab {% if tab == 'therapists' %}active{% endif %}">
+      <span>Terapistler</span>
+      <strong>{{ counts.therapists }}</strong>
+    </a>
+    <a href="{{ url_for('admin_users', tab='staff') }}" class="user-tab {% if tab == 'staff' %}active{% endif %}">
+      <span>Yöneticiler</span>
+      <strong>{{ counts.staff }}</strong>
+    </a>
+  </div>
+
+  {% if tab == 'clients' %}
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h2>Danışanlar</h2>
+        <span class="muted">Üye paneli hesapları</span>
+      </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Ad Soyad</th>
+            <th>E-posta</th>
+            <th>Üyelik</th>
+            <th>Durum</th>
+            <th>İşlemler</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in clients %}
+            {% set profile = u.client_profile %}
+            <tr>
+              <td><strong>{{ profile.full_name if profile else u.username }}</strong></td>
+              <td>{{ profile.email if profile else u.username }}</td>
+              <td>
+                {% if profile and profile.invite_accepted %}
+                  <span class="badge badge-onaylandi">Şifre belirlendi</span>
+                {% elif profile %}
+                  <span class="badge badge-beklemede">Şifre bekliyor</span>
+                {% else %}
+                  <span class="badge badge-iptal">Profil yok</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if u.is_active %}
+                  <span class="badge badge-onaylandi">Aktif</span>
+                {% else %}
+                  <span class="badge badge-iptal">Pasif</span>
+                {% endif %}
+              </td>
+              <td class="actions">
+                <a href="{{ url_for('admin_user_edit', id=u.id) }}" class="btn btn-sm btn-outline">Düzenle</a>
+                {% if u.id != current_user.id %}
+                  <form action="{{ url_for('admin_user_delete', id=u.id) }}" method="POST" onsubmit="return confirm('Bu danışanı silmek istediğinize emin misiniz?')">
+                    <button type="submit" class="btn btn-sm btn-danger">Sil</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5" class="empty">Henüz danışan hesabı yok.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% elif tab == 'therapists' %}
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h2>Terapistler</h2>
+        <span class="muted">Panel girişi olan terapist hesapları</span>
+      </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Kullanıcı Adı</th>
+            <th>Bağlı Terapist</th>
+            <th>Durum</th>
+            <th>İşlemler</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in therapist_users %}
+            <tr>
+              <td><strong>{{ u.username }}</strong></td>
+              <td>{{ u.therapist.name if u.therapist else '—' }}</td>
+              <td>
+                {% if u.is_active %}
+                  <span class="badge badge-onaylandi">Aktif</span>
+                {% else %}
+                  <span class="badge badge-iptal">Pasif</span>
+                {% endif %}
+              </td>
+              <td class="actions">
+                <a href="{{ url_for('admin_user_edit', id=u.id) }}" class="btn btn-sm btn-outline">Düzenle</a>
+                {% if u.id != current_user.id %}
+                  <form action="{{ url_for('admin_user_delete', id=u.id) }}" method="POST" onsubmit="return confirm('Bu terapist hesabını silmek istediğinize emin misiniz?')">
+                    <button type="submit" class="btn btn-sm btn-danger">Sil</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4" class="empty">Henüz terapist hesabı yok.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h2>Yöneticiler</h2>
+        <span class="muted">Admin ve editör hesapları</span>
+      </div>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Kullanıcı Adı</th>
+            <th>Rol</th>
+            <th>Durum</th>
+            <th>İşlemler</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in staff_users %}
+            <tr>
+              <td><strong>{{ u.username }}</strong></td>
+              <td><span class="badge badge-role badge-role-{{ u.role }}">{{ u.role_label }}</span></td>
+              <td>
+                {% if u.is_active %}
+                  <span class="badge badge-onaylandi">Aktif</span>
+                {% else %}
+                  <span class="badge badge-iptal">Pasif</span>
+                {% endif %}
+              </td>
+              <td class="actions">
+                <a href="{{ url_for('admin_user_edit', id=u.id) }}" class="btn btn-sm btn-outline">Düzenle</a>
+                {% if u.id != current_user.id %}
+                  <form action="{{ url_for('admin_user_delete', id=u.id) }}" method="POST" onsubmit="return confirm('Bu yönetici hesabını silmek istediğinize emin misiniz?')">
+                    <button type="submit" class="btn btn-sm btn-danger">Sil</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4" class="empty">Henüz yönetici hesabı yok.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
