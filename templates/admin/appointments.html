@@ -2,6 +2,10 @@
 
 {% block title %}Randevular{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/appointment-ops-crm.css') }}?v={{ static_v|default('20260806r') }}">
+{% endblock %}
+
 {% block content %}
 <div class="admin-page">
   <div class="admin-header">
@@ -14,15 +18,23 @@
     </div>
   </div>
 
-  <div class="summary-chips">
+  {% set pill_tone = {
+    'beklemede': 'amber',
+    'onaylandi': 'green',
+    'tamamlandi': 'blue',
+    'iptal': 'violet'
+  } %}
+  <div class="raptor-kpi-strip" role="navigation" aria-label="Randevu özeti">
     <a href="{{ url_for('admin_appointments', q=search, from=date_from, to=date_to, therapist_id=therapist_filter if not is_therapist_view else None) }}"
-       class="summary-chip {% if not status_filter %}active{% endif %}">
-      <span>Tümü</span><strong>{{ total_all }}</strong>
+       class="raptor-pill raptor-pill-blue {% if not status_filter %}is-active{% endif %}">
+      <span class="raptor-pill-value">{{ total_all }}</span>
+      <span class="raptor-pill-label">Tümü</span>
     </a>
     {% for key, label in status_labels.items() %}
       <a href="{{ url_for('admin_appointments', status=key, q=search, from=date_from, to=date_to, therapist_id=therapist_filter if not is_therapist_view else None) }}"
-         class="summary-chip chip-{{ key }} {% if status_filter == key %}active{% endif %}">
-        <span>{{ label }}</span><strong>{{ status_counts.get(key, 0) }}</strong>
+         class="raptor-pill raptor-pill-{{ pill_tone.get(key, 'blue') }} {% if status_filter == key %}is-active{% endif %}">
+        <span class="raptor-pill-value">{{ status_counts.get(key, 0) }}</span>
+        <span class="raptor-pill-label">{{ label }}</span>
       </a>
     {% endfor %}
   </div>

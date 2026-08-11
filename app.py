@@ -75,7 +75,7 @@ _default_db = "sqlite:///" + os.path.join(INSTANCE_DIR, "klinik.db")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", _default_db)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 86400
-STATIC_VERSION = "20260807q"
+STATIC_VERSION = "20260806r"
 
 db.init_app(app)
 
@@ -1784,7 +1784,28 @@ def admin_appointment_delete(id):
 @permission_required("blog")
 def admin_blog():
     posts = BlogPost.query.order_by(BlogPost.created_at.desc()).all()
-    return render_template("admin/blog.html", posts=posts)
+    status_filter = (request.args.get("status") or "").strip()
+    search = (request.args.get("q") or "").strip().lower()
+    filtered = posts
+    if status_filter == "published":
+        filtered = [p for p in filtered if p.is_published]
+    elif status_filter == "draft":
+        filtered = [p for p in filtered if not p.is_published]
+    if search:
+        filtered = [
+            p for p in filtered
+            if search in (p.title or "").lower()
+            or search in (p.author or "").lower()
+            or search in (p.tags or "").lower()
+            or search in (p.category or "").lower()
+        ]
+    return render_template(
+        "admin/blog.html",
+        posts=posts,
+        filtered=filtered,
+        status_filter=status_filter,
+        search=request.args.get("q") or "",
+    )
 
 
 @app.route("/admin/blog/ekle", methods=["GET", "POST"])

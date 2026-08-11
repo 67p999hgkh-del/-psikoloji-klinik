@@ -22,8 +22,10 @@ function initHorizontalCarousel(root, options = {}) {
 
   const getStep = () => {
     const slide = slides[0];
+    if (!slide) return 0;
     const gap = parseFloat(getComputedStyle(track).gap) || 20;
-    return slide.offsetWidth + gap;
+    const width = slide.getBoundingClientRect().width || slide.offsetWidth || 0;
+    return width > 0 ? width + gap : 0;
   };
 
   const getVisibleCount = () => {
@@ -101,7 +103,9 @@ function initHorizontalCarousel(root, options = {}) {
   viewport.addEventListener('scroll', () => {
     const step = getStep();
     if (!step) return;
-    index = Math.round(viewport.scrollLeft / step);
+    const next = Math.round(viewport.scrollLeft / step);
+    if (next === index) return;
+    index = Math.max(0, Math.min(next, maxIndex()));
     updateDots();
     updateButtons();
   }, { passive: true });
@@ -198,9 +202,11 @@ function initTherapistCarousel() {
 
   const getStep = () => {
     const slide = slides[0];
+    if (!slide) return 0;
     const track = viewport.querySelector('.therapists-carousel-track');
     const gap = track ? parseFloat(getComputedStyle(track).gap) || 16 : 16;
-    return slide.offsetWidth + gap;
+    const width = slide.getBoundingClientRect().width || slide.offsetWidth || 0;
+    return width > 0 ? width + gap : 0;
   };
 
   const maxIndex = () => Math.max(0, slides.length - 1);

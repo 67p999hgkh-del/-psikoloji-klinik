@@ -8,13 +8,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"></noscript>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-base.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-mobile.css') }}?v={{ static_v|default('20260807q') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-base.css') }}?v={{ static_v|default('20260806r') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}?v={{ static_v|default('20260806r') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-mobile.css') }}?v={{ static_v|default('20260806r') }}">
+  {% block extra_head %}{% endblock %}
 </head>
 <body class="admin-body">
   {% if current_user %}
-    <aside class="admin-sidebar">
+    <button type="button" class="admin-sidebar-overlay" id="adminSidebarOverlay" aria-label="Menüyü kapat" tabindex="-1"></button>
+    <aside class="admin-sidebar" id="adminSidebar">
       <div class="admin-brand">
         <span class="admin-brand-mark" aria-hidden="true">P</span>
         <div class="admin-brand-text">
@@ -101,11 +103,14 @@
   <div class="admin-main">
     {% if current_user %}
       <header class="admin-topbar">
-        <nav class="admin-breadcrumb" aria-label="Konum">
-          <span>Yönetim Paneli</span>
-          <span class="admin-breadcrumb-sep">/</span>
-          <strong>{{ self.title() }}</strong>
-        </nav>
+        <div class="admin-topbar-left">
+          <button type="button" class="admin-menu-btn" id="adminMenuBtn" aria-label="Menü" aria-expanded="false" aria-controls="adminSidebar">☰</button>
+          <nav class="admin-breadcrumb" aria-label="Konum">
+            <span>Yönetim Paneli</span>
+            <span class="admin-breadcrumb-sep">/</span>
+            <strong>{{ self.title() }}</strong>
+          </nav>
+        </div>
         <div class="admin-topbar-right">
           <a href="{{ url_for('home') }}" target="_blank" class="topbar-link">Siteyi Gör ↗</a>
           <div class="topbar-user">
@@ -135,24 +140,35 @@
 
     {% block content %}{% endblock %}
   </div>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('.admin-main .flash').forEach((flash) => {
-        const dismiss = () => {
-          flash.style.opacity = '0';
-          flash.style.transform = 'translateX(100%)';
-          flash.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-          setTimeout(() => {
-            flash.remove();
-            const container = document.getElementById('adminFlashContainer');
-            if (container && !container.querySelector('.flash')) container.remove();
-          }, 300);
-        };
-        flash.querySelector('.flash-close')?.addEventListener('click', dismiss);
-        setTimeout(dismiss, 4000);
-      });
-    });
-  </script>
+
+  {% if current_user %}
+    <nav class="admin-bottom-nav" aria-label="Mobil hızlı menü">
+      {% if can('dashboard') %}
+        <a href="{{ url_for('admin_dashboard') }}" class="{% if request.endpoint == 'admin_dashboard' %}is-active{% endif %}">
+          <span aria-hidden="true">⌂</span>
+          <span>Panel</span>
+        </a>
+      {% endif %}
+      {% if can('appointments') %}
+        <a href="{{ url_for('admin_appointments') }}" class="{% if 'appointment' in request.endpoint %}is-active{% endif %}">
+          <span aria-hidden="true">◷</span>
+          <span>Randevu</span>
+        </a>
+      {% endif %}
+      {% if can('sessions') %}
+        <a href="{{ url_for('admin_sessions') }}" class="{% if request.endpoint in ['admin_sessions', 'admin_session_new', 'admin_note_new'] %}is-active{% endif %}">
+          <span aria-hidden="true">◎</span>
+          <span>Seans</span>
+        </a>
+      {% endif %}
+      <button type="button" class="bn-menu" id="adminBottomMenuBtn" aria-label="Tüm menü">
+        <span aria-hidden="true">☰</span>
+        <span>Menü</span>
+      </button>
+    </nav>
+  {% endif %}
+
+  <script src="{{ url_for('static', filename='js/admin-shell.js') }}?v={{ static_v|default('20260806r') }}"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

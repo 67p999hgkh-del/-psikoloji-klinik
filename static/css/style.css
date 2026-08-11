@@ -2576,6 +2576,38 @@ a:hover { color: var(--color-primary-dark); }
   gap: 0.75rem;
 }
 
+/* Home-v2: carousel track stability + overflow clip */
+.home-flow {
+  overflow-x: clip;
+}
+
+.home-flow .blog-carousel-viewport,
+.home-flow .tests-carousel-viewport,
+.home-flow .therapists-carousel-viewport {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.home-flow .blog-carousel-viewport::-webkit-scrollbar,
+.home-flow .tests-carousel-viewport::-webkit-scrollbar,
+.home-flow .therapists-carousel-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.home-flow .blog-carousel-slide,
+.home-flow .tests-carousel-slide,
+.home-flow .therapist-carousel-slide {
+  scroll-snap-align: start;
+}
+
+.home-flow .blog-carousel-btn:disabled,
+.home-flow .tests-carousel-btn:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
 /* Slim info banner carousel */
 .info-carousel-slim {
   background: var(--color-gradient-purple);

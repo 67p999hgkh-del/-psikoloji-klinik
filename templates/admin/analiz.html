@@ -1,6 +1,10 @@
 {% extends 'admin/base.html' %}
 {% block title %}PsikoPlan Analiz{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/analiz-ops.css') }}?v={{ static_v|default('20260806r') }}">
+{% endblock %}
+
 {% block content %}
 <div class="admin-page psikoplan-page">
   <div class="psikoplan-hero">

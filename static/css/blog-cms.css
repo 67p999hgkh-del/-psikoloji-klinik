@@ -1,0 +1,145 @@
+/* Blog CMS — SaaS layout + raptor pill KPI (Aug 6 restore) */
+
+.bcm-saas-layout {
+  display: grid;
+  gap: 1rem;
+  padding-bottom: 2rem;
+}
+
+.bcm-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.bcm-header h1 {
+  margin: 0 0 0.2rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+}
+
+.bcm-sub {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.84rem;
+}
+
+/* raptor-pill styles: admin.css */
+
+.bcm-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-end;
+  background: #fff;
+  border-radius: 14px;
+  padding: 0.65rem 0.85rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.bcm-toolbar .filter-field {
+  flex: 1 1 180px;
+  min-width: 140px;
+}
+
+.bcm-toolbar .filter-field label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bcm-toolbar .filter-field input,
+.bcm-toolbar .filter-field select {
+  height: 2.1rem;
+  font-size: 0.8rem;
+  border-radius: 9px;
+  border: 1px solid #e2e8f0;
+  padding: 0.35rem 0.55rem;
+  width: 100%;
+}
+
+.bcm-board {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+}
+
+.bcm-board-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.bcm-board-head h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.bcm-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.6fr) minmax(90px, 0.7fr) minmax(80px, 0.6fr) minmax(88px, auto) auto;
+  gap: 0.65rem 0.85rem;
+  align-items: center;
+  padding: 0.75rem 1.1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.bcm-row:last-child { border-bottom: none; }
+.bcm-row:hover { background: #f8fbff; }
+
+.bcm-title {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.88rem;
+}
+
+.bcm-meta {
+  display: block;
+  font-size: 0.68rem;
+  color: #94a3b8;
+  font-weight: 600;
+  margin-top: 0.15rem;
+}
+
+.bcm-empty {
+  padding: 2rem 1.1rem;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.bcm-empty strong {
+  display: block;
+  color: #475569;
+  margin-bottom: 0.25rem;
+}
+
+@media (max-width: 900px) {
+  .raptor-kpi-strip {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .raptor-kpi-strip::-webkit-scrollbar { display: none; }
+  .raptor-pill { flex-shrink: 0; }
+  .bcm-row {
+    grid-template-columns: 1fr auto;
+    gap: 0.4rem 0.65rem;
+  }
+  .bcm-row > :nth-child(2),
+  .bcm-row > :nth-child(3) {
+    display: none;
+  }
+}
