@@ -10,7 +10,8 @@
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"></noscript>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-base.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-mobile.css') }}?v={{ static_v|default('20260807q') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin-mobile.css') }}?v={{ static_v|default('20260806r') }}">
+  {% block extra_head %}{% endblock %}
 </head>
 <body class="admin-body">
   {% if current_user %}
