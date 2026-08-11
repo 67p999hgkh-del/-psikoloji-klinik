@@ -3,6 +3,10 @@
 {% from 'partials/person_photo.html' import person_photo %}
 {% from 'partials/therapist_badges.html' import therapist_badges with context %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home-v2.css') }}?v={{ static_v|default('20260806r') }}">
+{% endblock %}
+
 {% block content %}
 <div class="home-flow">
   {% include 'partials/slider.html' %}

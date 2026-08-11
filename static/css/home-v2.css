@@ -1,0 +1,710 @@
+/* Home-v2 — ana sayfa layout / carousel / mobil akış (Aug 6 restore) */
+
+/* ── Composition shell ── */
+.home-flow {
+  overflow-x: clip;
+}
+
+.home-flow .blog-carousel-viewport,
+.home-flow .tests-carousel-viewport,
+.home-flow .therapists-carousel-viewport {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.home-flow .blog-carousel-viewport::-webkit-scrollbar,
+.home-flow .tests-carousel-viewport::-webkit-scrollbar,
+.home-flow .therapists-carousel-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.home-flow .blog-carousel-slide,
+.home-flow .tests-carousel-slide,
+.home-flow .therapist-carousel-slide {
+  scroll-snap-align: start;
+}
+
+.home-flow .blog-carousel-btn:disabled,
+.home-flow .tests-carousel-btn:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* ── Home extras (info + booking steps) ── */
+.home-extras-split {
+  padding: 1rem 0 1.25rem;
+  background: var(--color-section);
+}
+
+.home-extras-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.info-carousel-slim {
+  background: var(--color-gradient-purple);
+  color: white;
+  border-radius: var(--radius-lg);
+  padding: 0.85rem 1.25rem 0.7rem;
+  overflow: hidden;
+}
+
+.info-carousel-viewport {
+  overflow: hidden;
+}
+
+.info-carousel-track {
+  display: flex;
+  transition: transform 0.5s ease;
+}
+
+.info-slide {
+  flex: 0 0 100%;
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+}
+
+.info-slide-icon {
+  width: 38px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.info-slide-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.info-slide h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.15rem;
+  line-height: 1.3;
+}
+
+.info-slide p {
+  font-size: 0.82rem;
+  opacity: 0.92;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.info-carousel-dots {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+  padding-left: calc(38px + 0.85rem);
+}
+
+.info-carousel-dots button {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  padding: 0;
+  transition: width 0.2s ease, background 0.2s ease;
+}
+
+.info-carousel-dots button.active {
+  background: white;
+  width: 18px;
+  border-radius: 4px;
+}
+
+.booking-steps-box {
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow);
+  padding: 1.15rem 1.25rem 0.9rem;
+}
+
+.booking-steps-header {
+  margin-bottom: 0.85rem;
+}
+
+.booking-steps-header h2 {
+  font-size: 1.05rem;
+  margin-bottom: 0.15rem;
+}
+
+.booking-steps-header p {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.booking-steps-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+}
+
+.booking-steps-scroll {
+  overflow: visible;
+}
+
+.booking-step-card {
+  background: var(--color-section);
+  border-radius: var(--radius);
+  padding: 0.75rem 0.85rem;
+  border-left: 4px solid var(--step-color, var(--color-primary));
+}
+
+.booking-step-icon {
+  font-size: 1.15rem;
+  margin-bottom: 0.35rem;
+}
+
+.booking-step-card h3 {
+  font-size: 0.88rem;
+  margin-bottom: 0.25rem;
+}
+
+.booking-step-card p {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+.booking-steps-note {
+  margin-top: 0.75rem;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* ── Section chrome ── */
+.blog-preview-home {
+  padding-top: 1.25rem;
+  padding-bottom: 0.75rem;
+}
+
+.therapists-preview {
+  padding-top: 1.5rem;
+  background: var(--color-section);
+}
+
+.blog-card-light.blog-carousel-slide {
+  padding: 0;
+}
+
+.blog-card-light.blog-carousel-slide .blog-meta,
+.blog-card-light.blog-carousel-slide h3,
+.blog-card-light.blog-carousel-slide p,
+.blog-card-light.blog-carousel-slide .tag-list {
+  padding-left: 0.9rem;
+  padding-right: 0.9rem;
+}
+
+.blog-card-light.blog-carousel-slide .blog-meta {
+  padding-top: 0.65rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.75rem;
+}
+
+.blog-card-light.blog-carousel-slide h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.35rem;
+}
+
+.blog-card-light.blog-carousel-slide p {
+  font-size: 0.82rem;
+  margin-bottom: 0.6rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.blog-card-light.blog-carousel-slide .tag-list {
+  padding-bottom: 0.7rem;
+}
+
+.blog-card-light.blog-carousel-slide .blog-thumb {
+  height: 105px;
+  border-radius: 0;
+}
+
+/* ── Blog carousel ── */
+.blog-carousel {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.blog-carousel-viewport {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 0.15rem 0 0.45rem;
+}
+
+.blog-carousel-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.blog-carousel-track {
+  display: flex;
+  gap: 1rem;
+}
+
+.blog-carousel-slide {
+  flex: 0 0 calc(33.333% - 0.7rem);
+  min-width: 240px;
+  scroll-snap-align: start;
+}
+
+.blog-carousel-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  flex-shrink: 0;
+}
+
+.blog-carousel-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.28);
+  transform: scale(1.05);
+}
+
+.blog-carousel-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.blog-carousel-dots {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-top: 0.25rem;
+}
+
+.blog-carousel-dots button {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  padding: 0;
+}
+
+.blog-carousel-dots button.active {
+  background: white;
+  transform: scale(1.15);
+}
+
+/* ── Tests carousel ── */
+.tests-preview {
+  padding-top: 1.25rem;
+  padding-bottom: 1rem;
+}
+
+.tests-preview-gradient {
+  background:
+    radial-gradient(ellipse 70% 55% at 10% 15%, rgba(255, 255, 255, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 90% 85%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    linear-gradient(135deg, #7c3aed 0%, #2563eb 45%, #0891b2 100%);
+  padding: 1.75rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.tests-preview-gradient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.35;
+}
+
+.tests-preview-gradient .container {
+  position: relative;
+  z-index: 1;
+}
+
+.tests-preview-header .section-title,
+.tests-preview-gradient .section-title {
+  color: white;
+}
+
+.tests-carousel {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.tests-carousel-viewport {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 0.15rem 0 0.45rem;
+}
+
+.tests-carousel-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.tests-carousel-track {
+  display: flex;
+  gap: 1rem;
+}
+
+.tests-carousel-slide {
+  flex: 0 0 calc(33.333% - 0.7rem);
+  min-width: 240px;
+  scroll-snap-align: start;
+}
+
+.tests-carousel-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  flex-shrink: 0;
+}
+
+.tests-carousel-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.28);
+  transform: scale(1.05);
+}
+
+.tests-carousel-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.tests-carousel-dots {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-top: 0.25rem;
+}
+
+.tests-carousel-dots button {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  padding: 0;
+}
+
+.tests-carousel-dots button.active {
+  background: white;
+  transform: scale(1.15);
+}
+
+.test-mini-card {
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.05rem 0.95rem;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+  border-top: 3px solid var(--test-accent, #fff);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-height: 100%;
+}
+
+.test-mini-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.test-mini-card-icon {
+  font-size: 1.35rem;
+}
+
+.test-mini-card-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #059669;
+  background: #ecfdf5;
+  border-radius: 999px;
+  padding: 0.2rem 0.5rem;
+}
+
+.test-mini-card-category {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.test-mini-card h3 {
+  font-size: 0.95rem;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.test-mini-card h3 a {
+  color: #0f172a;
+}
+
+.test-mini-card p {
+  font-size: 0.8rem;
+  color: #64748b;
+  line-height: 1.45;
+  margin: 0;
+  flex: 1;
+}
+
+.test-mini-card-meta {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.test-mini-card-btn {
+  margin-top: 0.35rem;
+}
+
+/* ── Therapists carousel (mobile-first strip) ── */
+.therapists-carousel-viewport {
+  overflow: visible;
+}
+
+.therapists-carousel-track {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.therapists-carousel-dots {
+  display: none;
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .info-carousel-track,
+  .blog-carousel-viewport,
+  .tests-carousel-viewport,
+  .therapists-carousel-viewport {
+    scroll-behavior: auto;
+    transition: none !important;
+  }
+}
+
+/* ── Tablet ── */
+@media (max-width: 960px) {
+  .blog-carousel-slide,
+  .tests-carousel-slide {
+    flex: 0 0 calc(50% - 0.65rem);
+  }
+
+  .booking-steps-row {
+    grid-template-columns: 1fr;
+  }
+
+  .therapists-carousel-track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ── Mobile home-v2 flow ── */
+@media (max-width: 640px) {
+  body:has(.home-flow) {
+    background: var(--color-section);
+  }
+
+  body:has(.home-flow) .site-header-v2 {
+    border-bottom: none;
+  }
+
+  .home-flow {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .home-flow .hero-slider {
+    display: none;
+  }
+
+  .home-flow .home-tests-section {
+    order: -1;
+    margin: 0.65rem 0.85rem 0;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    padding-top: 1rem;
+    padding-bottom: 1.05rem;
+  }
+
+  .home-flow .appointment-search-hero {
+    margin: 0.85rem;
+    border-radius: 1.25rem;
+    border-bottom: none;
+    overflow: hidden;
+  }
+
+  .home-extras-split,
+  .appointment-search-hero {
+    overflow-x: clip;
+  }
+
+  .blog-carousel,
+  .tests-carousel {
+    grid-template-columns: 1fr;
+  }
+
+  .blog-carousel-btn,
+  .tests-carousel-btn {
+    display: none;
+  }
+
+  .blog-carousel-slide,
+  .tests-carousel-slide {
+    flex: 0 0 88%;
+    min-width: 0;
+  }
+
+  .info-carousel-dots {
+    padding-left: 0;
+    justify-content: center;
+  }
+
+  .booking-steps-header {
+    text-align: center;
+  }
+
+  .booking-steps-note {
+    display: flex;
+    justify-content: center;
+  }
+
+  .booking-steps-scroll {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .booking-steps-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .booking-steps-row {
+    display: flex;
+    gap: 0.75rem;
+    width: max-content;
+  }
+
+  .booking-step-card {
+    flex: 0 0 min(78vw, 260px);
+    scroll-snap-align: start;
+    background: var(--color-gradient);
+    color: white;
+    border-left: none;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
+    padding: 1rem;
+  }
+
+  .booking-step-card h3,
+  .booking-step-card p {
+    color: white;
+  }
+
+  .booking-step-card p {
+    opacity: 0.92;
+    font-size: 0.78rem;
+  }
+
+  .therapists-carousel-viewport {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin: 0 -0.25rem;
+    padding: 0.15rem 0.25rem 0.5rem;
+  }
+
+  .therapists-carousel-viewport::-webkit-scrollbar {
+    display: none;
+  }
+
+  .therapists-carousel-track {
+    display: flex;
+    gap: 0.85rem;
+    width: max-content;
+  }
+
+  .therapist-carousel-slide {
+    flex: 0 0 min(82vw, 280px);
+    scroll-snap-align: start;
+  }
+
+  .therapists-carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.45rem;
+    margin-top: 0.35rem;
+  }
+
+  .therapists-carousel-dots button {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    background: #cbd5e1;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .therapists-carousel-dots button.active {
+    background: #2563eb;
+    transform: scale(1.15);
+  }
+}

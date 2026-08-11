@@ -5,6 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initTherapistCarousel();
 });
 
+function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 function initHorizontalCarousel(root, options = {}) {
   if (!root) return;
 
@@ -19,6 +23,7 @@ function initHorizontalCarousel(root, options = {}) {
   let index = 0;
   let autoTimer = null;
   const interval = options.interval || 5000;
+  const reduceMotion = prefersReducedMotion();
 
   const getStep = () => {
     const slide = slides[0];
@@ -37,10 +42,12 @@ function initHorizontalCarousel(root, options = {}) {
   const maxIndex = () => Math.max(0, slides.length - getVisibleCount());
 
   const scrollToIndex = (nextIndex, smooth = true) => {
+    const step = getStep();
+    if (!step) return;
     index = Math.max(0, Math.min(nextIndex, maxIndex()));
     viewport.scrollTo({
-      left: index * getStep(),
-      behavior: smooth ? 'smooth' : 'auto',
+      left: index * step,
+      behavior: smooth && !reduceMotion ? 'smooth' : 'auto',
     });
     updateDots();
     updateButtons();
@@ -76,7 +83,7 @@ function initHorizontalCarousel(root, options = {}) {
 
   const startAuto = () => {
     stopAuto();
-    if (slides.length <= getVisibleCount()) return;
+    if (reduceMotion || slides.length <= getVisibleCount()) return;
     autoTimer = setInterval(() => {
       const next = index >= maxIndex() ? 0 : index + 1;
       scrollToIndex(next);
@@ -112,6 +119,15 @@ function initHorizontalCarousel(root, options = {}) {
 
   root.addEventListener('mouseenter', stopAuto);
   root.addEventListener('mouseleave', startAuto);
+  root.addEventListener('touchstart', stopAuto, { passive: true });
+  root.addEventListener('touchend', () => {
+    setTimeout(startAuto, 2500);
+  }, { passive: true });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopAuto();
+    else startAuto();
+  });
 
   window.addEventListener('resize', () => {
     buildDots();
@@ -147,6 +163,8 @@ function initInfoCarousel() {
   if (!track || slides.length <= 1 || !dotsWrap) return;
 
   let index = 0;
+  let timer = null;
+  const reduceMotion = prefersReducedMotion();
 
   slides.forEach((_, i) => {
     const dot = document.createElement('button');
@@ -156,21 +174,44 @@ function initInfoCarousel() {
     dot.addEventListener('click', () => {
       index = i;
       render();
+      restart();
     });
     dotsWrap.appendChild(dot);
   });
 
   const render = () => {
+    track.style.transition = reduceMotion ? 'none' : 'transform 0.5s ease';
     track.style.transform = `translateX(-${index * 100}%)`;
     dotsWrap.querySelectorAll('button').forEach((dot, i) => {
       dot.classList.toggle('active', i === index);
     });
   };
 
-  setInterval(() => {
-    index = (index + 1) % slides.length;
-    render();
-  }, 6000);
+  const stop = () => {
+    if (timer) clearInterval(timer);
+    timer = null;
+  };
+
+  const start = () => {
+    stop();
+    if (reduceMotion) return;
+    timer = setInterval(() => {
+      index = (index + 1) % slides.length;
+      render();
+    }, 6000);
+  };
+
+  const restart = () => start();
+
+  panel.addEventListener('mouseenter', stop);
+  panel.addEventListener('mouseleave', start);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stop();
+    else start();
+  });
+
+  render();
+  start();
 }
 
 function initBlogCarousel() {
@@ -197,6 +238,7 @@ function initTherapistCarousel() {
 
   let index = 0;
   let autoTimer = null;
+  const reduceMotion = prefersReducedMotion();
 
   const isMobile = () => window.innerWidth <= 640;
 
@@ -213,10 +255,12 @@ function initTherapistCarousel() {
 
   const scrollToIndex = (nextIndex, smooth = true) => {
     if (!isMobile()) return;
+    const step = getStep();
+    if (!step) return;
     index = Math.max(0, Math.min(nextIndex, maxIndex()));
     viewport.scrollTo({
-      left: index * getStep(),
-      behavior: smooth ? 'smooth' : 'auto',
+      left: index * step,
+      behavior: smooth && !reduceMotion ? 'smooth' : 'auto',
     });
     updateDots();
   };
@@ -248,7 +292,7 @@ function initTherapistCarousel() {
 
   const startAuto = () => {
     stopAuto();
-    if (!isMobile() || slides.length <= 1) return;
+    if (reduceMotion || !isMobile() || slides.length <= 1) return;
     autoTimer = setInterval(() => {
       const next = index >= maxIndex() ? 0 : index + 1;
       scrollToIndex(next);
@@ -264,7 +308,9 @@ function initTherapistCarousel() {
     if (!isMobile()) return;
     const step = getStep();
     if (!step) return;
-    index = Math.round(viewport.scrollLeft / step);
+    const next = Math.round(viewport.scrollLeft / step);
+    if (next === index) return;
+    index = Math.max(0, Math.min(next, maxIndex()));
     updateDots();
   }, { passive: true });
 
@@ -274,6 +320,11 @@ function initTherapistCarousel() {
   root.addEventListener('touchend', () => {
     setTimeout(startAuto, 3000);
   }, { passive: true });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopAuto();
+    else startAuto();
+  });
 
   window.addEventListener('resize', () => {
     buildDots();
