@@ -1,0 +1,96 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Yeni Randevu{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+  <div class="admin-header">
+    <div>
+      <h1>Yeni Randevu</h1>
+      <p class="muted">Danışan için tarih ve saat planlayın. Seans klinik kaydı ayrı açılır.</p>
+    </div>
+    <div class="admin-header-actions">
+      <a href="{{ url_for('admin_appointments') }}" class="btn btn-ghost btn-sm">İptal</a>
+    </div>
+  </div>
+
+  <form method="post" class="admin-card admin-form" id="apptCreateForm">
+    <div class="admin-card-header">
+      <h2>Danışan</h2>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="patient_name">Ad soyad</label>
+        <input type="text" id="patient_name" name="patient_name" value="{{ form.patient_name }}" required autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label for="patient_email">E-posta</label>
+        <input type="email" id="patient_email" name="patient_email" value="{{ form.patient_email }}" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label for="patient_phone">Telefon</label>
+        <input type="tel" id="patient_phone" name="patient_phone" value="{{ form.patient_phone }}" required autocomplete="tel">
+      </div>
+    </div>
+
+    <div class="admin-card-header" style="margin-top:1.25rem">
+      <h2>Plan</h2>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="therapist_id">Terapist{% if not is_therapist_view %} / şube{% endif %}</label>
+        <select id="therapist_id" name="therapist_id" required {% if is_therapist_view %}disabled{% endif %}>
+          {% if not is_therapist_view %}<option value="">Seçin</option>{% endif %}
+          {% for t in therapists %}
+            <option value="{{ t.id }}"
+              {% if form.therapist_id == t.id %}selected{% endif %}
+              data-city="{{ t.city or '' }}">
+              {{ t.name }}{% if t.city %} · {{ t.city }}{% endif %}
+            </option>
+          {% endfor %}
+        </select>
+        {% if is_therapist_view %}
+          <input type="hidden" name="therapist_id" value="{{ form.therapist_id }}">
+        {% endif %}
+      </div>
+      <div class="form-group">
+        <label for="appointment_date">Tarih</label>
+        <input type="date" id="appointment_date" name="appointment_date" value="{{ form.appointment_date }}" required>
+      </div>
+      <div class="form-group">
+        <label for="appointment_time">Saat</label>
+        <input type="time" id="appointment_time" name="appointment_time" value="{{ form.appointment_time }}" required>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="session_type">Tür</label>
+        <select id="session_type" name="session_type">
+          {% for key, label in session_labels.items() %}
+            <option value="{{ key }}" {% if form.session_type == key %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="status">Durum</label>
+        <select id="status" name="status">
+          {% for key, label in status_labels.items() %}
+            {% if key != 'tamamlandi' %}
+              <option value="{{ key }}" {% if form.status == key %}selected{% endif %}>{{ label }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="notes">Not</label>
+      <textarea id="notes" name="notes" rows="3" placeholder="Opsiyonel — iç not veya danışan talebi">{{ form.notes }}</textarea>
+    </div>
+
+    <div class="form-actions" style="display:flex;gap:0.5rem;margin-top:1rem">
+      <button type="submit" class="btn btn-primary">Randevu kaydet</button>
+      <a href="{{ url_for('admin_appointments') }}" class="btn btn-ghost">Vazgeç</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

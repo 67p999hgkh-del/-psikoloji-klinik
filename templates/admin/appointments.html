@@ -14,6 +14,7 @@
       <p>{{ total }} kayıt listeleniyor{% if total_all != total %} · toplam {{ total_all }}{% endif %}</p>
     </div>
     <div class="admin-header-actions">
+      <a href="{{ url_for('admin_appointment_new') }}" class="btn btn-primary btn-sm">+ Yeni Randevu</a>
       <a href="{{ url_for('admin_session_new') }}" class="btn btn-outline btn-sm">Seans kaydı aç</a>
     </div>
   </div>
@@ -153,7 +154,10 @@
             <tr>
               <td colspan="{% if is_therapist_view %}6{% else %}7{% endif %}" class="empty">
                 <strong>Randevu bulunamadı</strong>
-                <span>Filtreleri değiştirin veya temizleyin.</span>
+                <span>Filtreleri değiştirin veya yeni randevu oluşturun.</span>
+                <p style="margin-top:0.75rem">
+                  <a href="{{ url_for('admin_appointment_new') }}" class="btn btn-sm btn-primary">+ Yeni Randevu</a>
+                </p>
               </td>
             </tr>
           {% endfor %}
