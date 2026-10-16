@@ -1791,10 +1791,15 @@ def admin_appointment_new():
             else:
                 try:
                     appt_date = datetime.strptime(form["appointment_date"], "%Y-%m-%d").date()
-                    time_raw = form["appointment_time"]
-                    if len(time_raw) == 5:
-                        appt_time = datetime.strptime(time_raw, "%H:%M").time()
-                    else:
+                    time_raw = (form["appointment_time"] or "").strip()
+                    appt_time = None
+                    for fmt in ("%H:%M", "%H:%M:%S", "%I:%M %p", "%I:%M:%S %p"):
+                        try:
+                            appt_time = datetime.strptime(time_raw, fmt).time()
+                            break
+                        except ValueError:
+                            continue
+                    if appt_time is None:
                         appt_time = parse_time_slot(time_raw)
                 except (ValueError, TypeError):
                     flash(t("flash.invalid_datetime"), "error")
