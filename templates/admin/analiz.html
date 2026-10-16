@@ -2,42 +2,52 @@
 {% block title %}PsikoPlan Analiz{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/analiz-ops.css') }}?v={{ static_v|default('20260806r') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/analiz-ops.css') }}?v={{ static_v|default('20261016analiz1') }}">
 {% endblock %}
 
 {% block content %}
 <div class="admin-page psikoplan-page">
-  <div class="psikoplan-hero">
-    <div>
+  <header class="psikoplan-hero">
+    <div class="psikoplan-hero-copy">
       <span class="psikoplan-badge">PsikoPlan AI</span>
       <h1>Akıllı Analiz Paneli</h1>
-      <p>{{ data.month_label }} — randevu, seans, üyelik, test ve fatura verileri tek ekranda.</p>
+      <p><strong>{{ data.month_label }}</strong> — randevu, seans, üyelik, test ve fatura verileri tek ekranda.</p>
     </div>
-    <form class="analiz-month-filter" method="get">
-      <label>Ay
+    <form class="analiz-month-filter" method="get" aria-label="Dönem seçimi">
+      <label class="analiz-filter-field">
+        <span class="analiz-filter-label">Ay</span>
         <select name="month">
           {% for num, name in data.months %}
             <option value="{{ num }}" {% if data.month == num %}selected{% endif %}>{{ name }}</option>
           {% endfor %}
         </select>
       </label>
-      <label>Yıl
-        <input type="number" name="year" value="{{ data.year }}" min="2020" max="2100">
+      <label class="analiz-filter-field">
+        <span class="analiz-filter-label">Yıl</span>
+        <input type="number" name="year" value="{{ data.year }}" min="2020" max="2100" inputmode="numeric">
       </label>
-      <button type="submit" class="btn btn-primary btn-sm">Göster</button>
+      <button type="submit" class="analiz-filter-submit">Göster</button>
     </form>
-  </div>
+  </header>
 
-  <div class="kpi-grid">
-    {% for kpi in data.kpis %}
-      <a class="kpi-card" href="{{ kpi.href }}">
-        <span class="kpi-icon">{{ kpi.icon }}</span>
-        <span class="kpi-label">{{ kpi.label }}</span>
-        <strong class="kpi-value">{{ kpi.value }}</strong>
-        <small class="kpi-sub">{{ kpi.sub }}</small>
-      </a>
-    {% endfor %}
-  </div>
+  <section class="kpi-section" aria-label="Özet göstergeler">
+    <div class="kpi-section-head">
+      <h2 class="kpi-section-title">Dönem özeti</h2>
+      <p class="kpi-section-hint">Kartlara tıklayarak ilgili modüle gidebilirsiniz.</p>
+    </div>
+    <div class="kpi-grid">
+      {% for kpi in data.kpis %}
+        <a class="kpi-card" href="{{ kpi.href }}">
+          <div class="kpi-card-top">
+            <span class="kpi-icon" aria-hidden="true">{{ kpi.icon }}</span>
+            <span class="kpi-label">{{ kpi.label }}</span>
+          </div>
+          <strong class="kpi-value">{{ kpi.value }}</strong>
+          <small class="kpi-sub">{{ kpi.sub }}</small>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
 
   <section class="admin-card health-card">
     <div class="admin-card-header">

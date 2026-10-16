@@ -75,7 +75,7 @@ _default_db = "sqlite:///" + os.path.join(INSTANCE_DIR, "klinik.db")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", _default_db)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 86400
-STATIC_VERSION = "20260806s"
+STATIC_VERSION = "20261016analiz1"
 
 db.init_app(app)
 

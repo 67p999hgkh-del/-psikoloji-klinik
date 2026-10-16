@@ -1,4 +1,8 @@
-/* PsikoPlan Analiz — ops panel (Aug 6 restore) */
+/* PsikoPlan Analiz — ops panel */
+
+.psikoplan-page {
+  max-width: 1280px;
+}
 
 /* PsikoPlan / charts */
 .admin-chart-grid {
@@ -22,17 +26,24 @@
 .psikoplan-hero {
   background:
     radial-gradient(ellipse 80% 120% at 100% 0%, rgba(6, 182, 212, 0.45) 0%, transparent 60%),
-    linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    radial-gradient(ellipse 60% 80% at 0% 100%, rgba(255, 255, 255, 0.08) 0%, transparent 55%),
+    linear-gradient(135deg, #1e3a8a 0%, #2563eb 55%, #1d4ed8 100%);
   color: white;
-  padding: 1.6rem 1.75rem;
-  border-radius: var(--radius-lg);
-  margin-bottom: 1.25rem;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  border-radius: 20px;
+  margin-bottom: 1.35rem;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 1.25rem;
   flex-wrap: wrap;
-  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.18);
+  box-shadow: 0 16px 40px rgba(30, 58, 138, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.psikoplan-hero-copy {
+  flex: 1 1 280px;
+  min-width: 0;
 }
 
 .psikoplan-badge {
@@ -47,105 +58,440 @@
   margin-bottom: 0.55rem;
 }
 
-.psikoplan-hero h1 { margin: 0; font-size: 1.55rem; letter-spacing: -0.02em; }
-.psikoplan-hero p { margin: 0.35rem 0 0; font-size: 0.9rem; color: rgba(255, 255, 255, 0.85); }
+.psikoplan-hero h1 { margin: 0; font-size: clamp(1.25rem, 2.5vw, 1.55rem); letter-spacing: -0.02em; }
+.psikoplan-hero p { margin: 0.45rem 0 0; font-size: 0.9rem; color: rgba(255, 255, 255, 0.88); line-height: 1.5; }
+.psikoplan-hero p strong { font-weight: 700; color: #fff; }
 
 .analiz-month-filter {
   display: flex;
-  gap: 0.6rem;
-  align-items: end;
+  gap: 0.75rem;
+  align-items: flex-end;
   flex-wrap: wrap;
   margin: 0;
+  flex: 0 1 auto;
+  padding: 0.7rem 0.85rem;
+  background: rgba(15, 23, 42, 0.18);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(6px);
 }
 
-.analiz-month-filter label {
+.analiz-filter-field {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.analiz-filter-label {
+  display: block;
+  height: 0.85rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 0.85rem;
 }
 
 .analiz-month-filter select,
 .analiz-month-filter input {
+  display: block;
   border: 1px solid rgba(255, 255, 255, 0.35);
-  background: rgba(255, 255, 255, 0.14);
-  color: white;
-  border-radius: 8px;
-  padding: 0.45rem 0.6rem;
-  font-size: 0.85rem;
-  min-width: 92px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #0f172a;
+  border-radius: 10px;
+  padding: 0 0.7rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  width: 7.25rem;
+  height: 40px;
+  min-height: 40px;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.analiz-month-filter input[type="number"] {
+  width: 5.75rem;
+  -moz-appearance: textfield;
+}
+
+.analiz-month-filter input[type="number"]::-webkit-outer-spin-button,
+.analiz-month-filter input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.analiz-month-filter select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23475569' d='M1.4 0.6L6 5.2 10.6 0.6 12 2 6 8 0 2z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  padding-right: 1.85rem;
 }
 
 .analiz-month-filter option { color: #0f172a; }
 
+.analiz-filter-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 1.2rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  color: #1e3a8a;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.15);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.analiz-filter-submit:hover {
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.2);
+}
+
+.analiz-filter-submit:active {
+  transform: translateY(1px);
+}
+
 /* ── KPI kartları ── */
+.kpi-section {
+  margin-bottom: 1.35rem;
+}
+
+.kpi-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.kpi-section-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.kpi-section-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+.homework-section {
+  margin-bottom: 1.25rem;
+}
+
+.kpi-grid-homework {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.kpi-grid-homework .kpi-card {
+  grid-column: auto;
+  flex: unset;
+  border-top: 3px solid #f59e0b;
+}
+
+.homework-overdue-table td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.homework-therapist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+  padding: 0 1.5rem 1.25rem;
+}
+
+.homework-therapist-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  background: #f8fafc;
+}
+
+.homework-therapist-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.92rem;
+  color: #0f172a;
+}
+
+@media (max-width: 900px) {
+  .kpi-grid-homework {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .homework-therapist-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .psikoplan-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .analiz-month-filter {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 640px) {
+  .kpi-grid-homework,
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-card,
+  .kpi-card:nth-child(n + 5) {
+    grid-column: span 1;
+  }
+
+  .homework-overdue-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .homework-section .kpi-section-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ci-hero h1 {
+    font-size: 1.25rem;
+  }
+}
+
+/* 12 kolon: masaüstünde 4+3; geniş ekranda eşit 7 kolon */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 0.85rem;
-  margin-bottom: 1.25rem;
+  align-items: stretch;
+}
+
+.kpi-card {
+  grid-column: span 6;
+}
+
+@media (min-width: 640px) {
+  .kpi-card {
+    grid-column: span 4;
+  }
+}
+
+@media (min-width: 900px) {
+  .kpi-card {
+    grid-column: span 3;
+  }
+
+  .kpi-card:nth-child(n + 5) {
+    grid-column: span 4;
+  }
+}
+
+@media (min-width: 1180px) {
+  .kpi-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .kpi-card,
+  .kpi-card:nth-child(n + 5) {
+    grid-column: span 1;
+  }
 }
 
 .kpi-card {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.5rem;
   background: white;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 1rem 1.1rem;
-  box-shadow: var(--shadow);
+  border-radius: 16px;
+  padding: 1.05rem 1.1rem 1.1rem;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
   transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  min-width: 0;
+  min-height: 7.5rem;
+  box-sizing: border-box;
+  border-top: 3px solid #2563eb;
+  text-decoration: none;
+  color: inherit;
 }
+
+.kpi-card:nth-child(2) { border-top-color: #06b6d4; }
+.kpi-card:nth-child(3) { border-top-color: #8b5cf6; }
+.kpi-card:nth-child(4) { border-top-color: #f59e0b; }
+.kpi-card:nth-child(5) { border-top-color: #10b981; }
+.kpi-card:nth-child(6) { border-top-color: #ec4899; }
+.kpi-card:nth-child(7) { border-top-color: #6366f1; }
 
 .kpi-card:hover {
   transform: translateY(-2px);
   border-color: #bfdbfe;
-  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.12);
 }
 
-.kpi-icon { font-size: 1.25rem; }
+.kpi-card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  min-height: 1.5rem;
+}
+
+.kpi-icon {
+  width: 1.4rem;
+  height: 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .kpi-label {
-  font-size: 0.72rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.65rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #94a3b8;
+  line-height: 1.3;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
-.kpi-value { font-size: 1.5rem; font-weight: 700; color: #1d4ed8; line-height: 1.2; }
-.kpi-sub { font-size: 0.76rem; color: #64748b; }
+
+.kpi-value {
+  font-size: clamp(1.3rem, 2vw, 1.5rem);
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-top: 0.1rem;
+}
+
+.kpi-sub {
+  font-size: 0.76rem;
+  color: #64748b;
+  line-height: 1.35;
+  min-height: 2.05em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: auto;
+}
 
 /* ── Sistem bütünlüğü ── */
-.health-list { list-style: none; margin: 0; padding: 0; }
+.health-card .admin-card-header {
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.health-list { list-style: none; margin: 0; padding: 0.35rem 0; }
 
 .health-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.85rem 1.5rem;
+  padding: 0.9rem 1.5rem;
   border-bottom: 1px solid var(--color-border);
   font-size: 0.88rem;
   flex-wrap: wrap;
 }
 
 .health-item:last-child { border-bottom: none; }
-.health-warn { background: #fffbeb; }
-.health-ok { background: #f0fdf4; }
+.health-warn { background: linear-gradient(90deg, #fffbeb 0%, #fff 100%); }
+.health-ok { background: linear-gradient(90deg, #f0fdf4 0%, #fff 100%); }
+
+/* Analiz sayfası aksiyon butonları (admin.css btn seti dışında) */
+.psikoplan-page .btn-primary,
+.psikoplan-page .health-card .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.95rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb, #0891b2);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.22);
+}
+
+.psikoplan-page .btn-outline,
+.psikoplan-page .health-item .btn-outline {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #1d4ed8;
+  white-space: nowrap;
+}
+
+.psikoplan-page .btn-outline:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+.psikoplan-page .btn-sm {
+  min-height: 36px;
+}
 
 /* ── Grafik satırları ── */
 .analiz-chart-row {
   display: grid;
   grid-template-columns: 1.35fr 1fr;
   gap: 1.25rem;
-  align-items: start;
+  align-items: stretch;
+  margin-bottom: 1.25rem;
 }
 
-.analiz-chart-row canvas { max-width: 100%; }
+.analiz-chart-row .admin-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.analiz-chart-row .admin-card-header .muted {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.analiz-chart-row canvas {
+  max-width: 100%;
+  width: 100% !important;
+  height: auto !important;
+  padding: 0 1.25rem 1.25rem;
+  box-sizing: border-box;
+}
 
 .analiz-empty {
   display: flex;
@@ -339,7 +685,24 @@
 
 @media (max-width: 900px) {
   .admin-chart-grid { grid-template-columns: 1fr; }
-  .psikoplan-hero { align-items: flex-start; }
+  .psikoplan-hero { align-items: stretch; }
+  .analiz-month-filter {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .analiz-filter-field {
+    flex: 1 1 calc(50% - 0.4rem);
+    min-width: 0;
+  }
+  .analiz-month-filter select,
+  .analiz-month-filter input {
+    width: 100%;
+  }
+  .analiz-filter-submit {
+    flex: 1 1 100%;
+    width: 100%;
+  }
   .revenue-mini { grid-template-columns: 1fr; }
-  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .health-item { flex-direction: column; align-items: flex-start; }
+  .health-item .btn-outline { align-self: flex-start; }
 }
