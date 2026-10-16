@@ -2,42 +2,76 @@
 {% block title %}PsikoPlan Analiz{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/analiz-ops.css') }}?v={{ static_v|default('20260806r') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/analiz-ops.css') }}?v={{ static_v|default('20261016charts2') }}">
 {% endblock %}
 
 {% block content %}
 <div class="admin-page psikoplan-page">
-  <div class="psikoplan-hero">
-    <div>
+  <header class="psikoplan-hero">
+    <div class="psikoplan-hero-copy">
       <span class="psikoplan-badge">PsikoPlan AI</span>
       <h1>Akıllı Analiz Paneli</h1>
-      <p>{{ data.month_label }} — randevu, seans, üyelik, test ve fatura verileri tek ekranda.</p>
+      <p><strong>{{ data.month_label }}</strong> — randevu, seans, üyelik, test ve fatura verileri tek ekranda.</p>
     </div>
-    <form class="analiz-month-filter" method="get">
-      <label>Ay
+    <form class="analiz-month-filter" method="get" aria-label="Dönem seçimi">
+      <label class="analiz-filter-field">
+        <span class="analiz-filter-label">Ay</span>
         <select name="month">
           {% for num, name in data.months %}
             <option value="{{ num }}" {% if data.month == num %}selected{% endif %}>{{ name }}</option>
           {% endfor %}
         </select>
       </label>
-      <label>Yıl
-        <input type="number" name="year" value="{{ data.year }}" min="2020" max="2100">
+      <label class="analiz-filter-field">
+        <span class="analiz-filter-label">Yıl</span>
+        <input type="number" name="year" value="{{ data.year }}" min="2020" max="2100" inputmode="numeric">
       </label>
-      <button type="submit" class="btn btn-primary btn-sm">Göster</button>
+      <div class="analiz-filter-actions">
+        <span class="analiz-filter-label" aria-hidden="true">&nbsp;</span>
+        <button type="submit" class="analiz-filter-submit">Göster</button>
+      </div>
     </form>
-  </div>
+  </header>
 
-  <div class="kpi-grid">
-    {% for kpi in data.kpis %}
-      <a class="kpi-card" href="{{ kpi.href }}">
-        <span class="kpi-icon">{{ kpi.icon }}</span>
-        <span class="kpi-label">{{ kpi.label }}</span>
-        <strong class="kpi-value">{{ kpi.value }}</strong>
-        <small class="kpi-sub">{{ kpi.sub }}</small>
-      </a>
-    {% endfor %}
-  </div>
+  <section class="kpi-section" aria-label="Özet göstergeler">
+    <div class="kpi-section-head">
+      <h2 class="kpi-section-title">Dönem özeti</h2>
+      <p class="kpi-section-hint">Kartlara tıklayarak ilgili modüle gidebilirsiniz.</p>
+    </div>
+    <div class="kpi-grid">
+      {% for kpi in data.kpis %}
+        <a class="kpi-card" href="{{ kpi.href }}">
+          <div class="kpi-card-top">
+            <span class="kpi-icon" aria-hidden="true">{{ kpi.icon }}</span>
+            <span class="kpi-label">{{ kpi.label }}</span>
+          </div>
+          <strong class="kpi-value">{{ kpi.value }}</strong>
+          <small class="kpi-sub">{{ kpi.sub }}</small>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% if data.homework %}
+  <section class="kpi-section homework-section" aria-label="Ödev operasyonu">
+    <div class="kpi-section-head">
+      <h2 class="kpi-section-title">Ödev operasyonu</h2>
+      <p class="kpi-section-hint">Seans workspace ödev kayıtları · {{ data.homework.completion_rate }}% dönem tamamlanma</p>
+    </div>
+    <div class="kpi-grid kpi-grid-homework">
+      {% for kpi in data.homework.kpis %}
+        <a class="kpi-card kpi-card-homework" href="{{ kpi.href }}">
+          <div class="kpi-card-top">
+            <span class="kpi-icon" aria-hidden="true">{{ kpi.icon }}</span>
+            <span class="kpi-label">{{ kpi.label }}</span>
+          </div>
+          <strong class="kpi-value">{{ kpi.value }}</strong>
+          <small class="kpi-sub">{{ kpi.sub }}</small>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
 
   <section class="admin-card health-card">
     <div class="admin-card-header">
@@ -66,7 +100,9 @@
         <h2>6 Aylık Gelişim</h2>
         <span class="muted">Randevu · Seans · Tahsilat</span>
       </div>
-      <canvas id="trendChart" height="230"></canvas>
+      <div class="analiz-chart-wrap">
+        <canvas id="trendChart" aria-label="6 aylık gelişim grafiği"></canvas>
+      </div>
     </section>
 
     <section class="admin-card">
@@ -74,10 +110,15 @@
         <h2>Randevu Durumu</h2>
         <a href="{{ url_for('admin_appointments') }}" class="muted">Randevular →</a>
       </div>
-      {% if data.status_chart.values %}
-        <canvas id="statusChart" height="230"></canvas>
+      {% if data.status_chart['values'] %}
+        <div class="analiz-chart-wrap analiz-chart-wrap--sm">
+          <canvas id="statusChart" aria-label="Randevu durumu grafiği"></canvas>
+        </div>
       {% else %}
-        <p class="muted">Bu ay randevu kaydı yok.</p>
+        <div class="analiz-empty-compact">
+          <p class="muted">Bu ay randevu kaydı yok.</p>
+          <a href="{{ url_for('admin_appointments') }}" class="btn btn-sm btn-outline">Randevulara git</a>
+        </div>
       {% endif %}
     </section>
   </div>
@@ -98,7 +139,7 @@
             <div><strong>İkinci Sıra</strong><span>{{ data.second_reason.label }} · %{{ data.second_reason.pct }}</span></div>
           {% endif %}
         </div>
-        <canvas id="reasonChart" height="240"></canvas>
+        <div class="analiz-chart-wrap analiz-chart-wrap--tall"><canvas id="reasonChart" aria-label="reasonChart"></canvas></div>
       {% else %}
         <div class="analiz-empty">
           <p>Bu ay seans kaydı yok, bu yüzden başvuru nedeni analizi boş.</p>
@@ -112,8 +153,8 @@
         <h2>Seans Türü</h2>
         <span class="muted">Online / Yüz yüze</span>
       </div>
-      {% if data.type_chart.values %}
-        <canvas id="typeChart" height="230"></canvas>
+      {% if data.type_chart['values'] %}
+        <div class="analiz-chart-wrap analiz-chart-wrap--sm"><canvas id="typeChart" aria-label="typeChart"></canvas></div>
       {% else %}
         <p class="muted">Bu ay randevu kaydı yok.</p>
       {% endif %}
@@ -291,6 +332,8 @@
   Chart.defaults.color = '#475569';
   const palette = ['#2563eb', '#06b6d4', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444'];
 
+  const chartFit = { responsive: true, maintainAspectRatio: false };
+
   const trendEl = document.getElementById('trendChart');
   if (trendEl) {
     new Chart(trendEl, {
@@ -303,7 +346,7 @@
         ]
       },
       options: {
-        responsive: true,
+        ...chartFit,
         interaction: { mode: 'index', intersect: false },
         scales: {
           y: { beginAtZero: true, ticks: { precision: 0 } },
@@ -322,6 +365,7 @@
         datasets: [{ data: analiz.reason.values, backgroundColor: '#2563eb', borderRadius: 8 }]
       },
       options: {
+        ...chartFit,
         indexAxis: 'y',
         plugins: { legend: { display: false } },
         scales: { x: { max: 100, ticks: { callback: v => v + '%' } } }
@@ -337,7 +381,7 @@
         labels: analiz.status.labels,
         datasets: [{ data: analiz.status.values, backgroundColor: palette, borderWidth: 0 }]
       },
-      options: { cutout: '62%', plugins: { legend: { position: 'bottom' } } }
+      options: { ...chartFit, cutout: '62%', plugins: { legend: { position: 'bottom' } } }
     });
   }
 
@@ -349,7 +393,7 @@
         labels: analiz.type.labels,
         datasets: [{ data: analiz.type.values, backgroundColor: ['#2563eb', '#06b6d4'], borderWidth: 0 }]
       },
-      options: { cutout: '62%', plugins: { legend: { position: 'bottom' } } }
+      options: { ...chartFit, cutout: '62%', plugins: { legend: { position: 'bottom' } } }
     });
   }
 </script>
