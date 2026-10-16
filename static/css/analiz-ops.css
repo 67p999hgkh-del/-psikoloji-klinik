@@ -539,17 +539,17 @@
 .analiz-chart-wrap {
   position: relative;
   width: 100%;
-  height: 240px;
-  padding: 0.25rem 1.15rem 1.15rem;
+  height: 220px;
+  padding: 0.15rem 1.1rem 1rem;
   box-sizing: border-box;
 }
 
 .analiz-chart-wrap--sm {
-  height: 200px;
+  height: 180px;
 }
 
 .analiz-chart-wrap--tall {
-  height: 280px;
+  height: 260px;
 }
 
 .analiz-chart-wrap canvas {
@@ -565,8 +565,8 @@
   display: block;
   width: 100% !important;
   max-width: 100%;
-  height: 240px !important;
-  padding: 0.25rem 1.15rem 1.15rem;
+  height: 220px !important;
+  padding: 0.15rem 1.1rem 1rem;
   box-sizing: border-box;
 }
 

@@ -2,7 +2,7 @@
 {% block title %}PsikoPlan Analiz{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/analiz-ops.css') }}?v={{ static_v|default('20261016charts1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/analiz-ops.css') }}?v={{ static_v|default('20261016charts2') }}">
 {% endblock %}
 
 {% block content %}
@@ -110,7 +110,7 @@
         <h2>Randevu Durumu</h2>
         <a href="{{ url_for('admin_appointments') }}" class="muted">Randevular →</a>
       </div>
-      {% if data.status_chart.values %}
+      {% if data.status_chart['values'] %}
         <div class="analiz-chart-wrap analiz-chart-wrap--sm">
           <canvas id="statusChart" aria-label="Randevu durumu grafiği"></canvas>
         </div>
@@ -153,7 +153,7 @@
         <h2>Seans Türü</h2>
         <span class="muted">Online / Yüz yüze</span>
       </div>
-      {% if data.type_chart.values %}
+      {% if data.type_chart['values'] %}
         <div class="analiz-chart-wrap analiz-chart-wrap--sm"><canvas id="typeChart" aria-label="typeChart"></canvas></div>
       {% else %}
         <p class="muted">Bu ay randevu kaydı yok.</p>
