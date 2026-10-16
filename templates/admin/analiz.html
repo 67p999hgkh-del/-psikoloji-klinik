@@ -2,7 +2,7 @@
 {% block title %}PsikoPlan Analiz{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/analiz-ops.css') }}?v={{ static_v|default('20261016odev1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/analiz-ops.css') }}?v={{ static_v|default('20261016charts1') }}">
 {% endblock %}
 
 {% block content %}
@@ -100,7 +100,9 @@
         <h2>6 Aylık Gelişim</h2>
         <span class="muted">Randevu · Seans · Tahsilat</span>
       </div>
-      <canvas id="trendChart" height="230"></canvas>
+      <div class="analiz-chart-wrap">
+        <canvas id="trendChart" aria-label="6 aylık gelişim grafiği"></canvas>
+      </div>
     </section>
 
     <section class="admin-card">
@@ -109,9 +111,14 @@
         <a href="{{ url_for('admin_appointments') }}" class="muted">Randevular →</a>
       </div>
       {% if data.status_chart.values %}
-        <canvas id="statusChart" height="230"></canvas>
+        <div class="analiz-chart-wrap analiz-chart-wrap--sm">
+          <canvas id="statusChart" aria-label="Randevu durumu grafiği"></canvas>
+        </div>
       {% else %}
-        <p class="muted">Bu ay randevu kaydı yok.</p>
+        <div class="analiz-empty-compact">
+          <p class="muted">Bu ay randevu kaydı yok.</p>
+          <a href="{{ url_for('admin_appointments') }}" class="btn btn-sm btn-outline">Randevulara git</a>
+        </div>
       {% endif %}
     </section>
   </div>
@@ -132,7 +139,7 @@
             <div><strong>İkinci Sıra</strong><span>{{ data.second_reason.label }} · %{{ data.second_reason.pct }}</span></div>
           {% endif %}
         </div>
-        <canvas id="reasonChart" height="240"></canvas>
+        <div class="analiz-chart-wrap analiz-chart-wrap--tall"><canvas id="reasonChart" aria-label="reasonChart"></canvas></div>
       {% else %}
         <div class="analiz-empty">
           <p>Bu ay seans kaydı yok, bu yüzden başvuru nedeni analizi boş.</p>
@@ -147,7 +154,7 @@
         <span class="muted">Online / Yüz yüze</span>
       </div>
       {% if data.type_chart.values %}
-        <canvas id="typeChart" height="230"></canvas>
+        <div class="analiz-chart-wrap analiz-chart-wrap--sm"><canvas id="typeChart" aria-label="typeChart"></canvas></div>
       {% else %}
         <p class="muted">Bu ay randevu kaydı yok.</p>
       {% endif %}
@@ -325,6 +332,8 @@
   Chart.defaults.color = '#475569';
   const palette = ['#2563eb', '#06b6d4', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444'];
 
+  const chartFit = { responsive: true, maintainAspectRatio: false };
+
   const trendEl = document.getElementById('trendChart');
   if (trendEl) {
     new Chart(trendEl, {
@@ -337,7 +346,7 @@
         ]
       },
       options: {
-        responsive: true,
+        ...chartFit,
         interaction: { mode: 'index', intersect: false },
         scales: {
           y: { beginAtZero: true, ticks: { precision: 0 } },
@@ -356,6 +365,7 @@
         datasets: [{ data: analiz.reason.values, backgroundColor: '#2563eb', borderRadius: 8 }]
       },
       options: {
+        ...chartFit,
         indexAxis: 'y',
         plugins: { legend: { display: false } },
         scales: { x: { max: 100, ticks: { callback: v => v + '%' } } }
@@ -371,7 +381,7 @@
         labels: analiz.status.labels,
         datasets: [{ data: analiz.status.values, backgroundColor: palette, borderWidth: 0 }]
       },
-      options: { cutout: '62%', plugins: { legend: { position: 'bottom' } } }
+      options: { ...chartFit, cutout: '62%', plugins: { legend: { position: 'bottom' } } }
     });
   }
 
@@ -383,7 +393,7 @@
         labels: analiz.type.labels,
         datasets: [{ data: analiz.type.values, backgroundColor: ['#2563eb', '#06b6d4'], borderWidth: 0 }]
       },
-      options: { cutout: '62%', plugins: { legend: { position: 'bottom' } } }
+      options: { ...chartFit, cutout: '62%', plugins: { legend: { position: 'bottom' } } }
     });
   }
 </script>
