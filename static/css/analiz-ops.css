@@ -64,19 +64,20 @@
 
 .analiz-month-filter {
   display: flex;
-  gap: 0.75rem;
-  align-items: flex-end;
   flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.85rem;
   margin: 0;
   flex: 0 1 auto;
-  padding: 0.7rem 0.85rem;
+  padding: 0.75rem 0.9rem;
   background: rgba(15, 23, 42, 0.18);
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(6px);
 }
 
-.analiz-filter-field {
+.analiz-filter-field,
+.analiz-filter-actions {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -97,20 +98,27 @@
 }
 
 .analiz-month-filter select,
+.analiz-month-filter input,
+.analiz-filter-submit {
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  box-sizing: border-box;
+  margin: 0;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.analiz-month-filter select,
 .analiz-month-filter input {
   display: block;
   border: 1px solid rgba(255, 255, 255, 0.35);
   background: rgba(255, 255, 255, 0.96);
   color: #0f172a;
-  border-radius: 10px;
-  padding: 0 0.7rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.25;
-  width: 7.25rem;
-  height: 40px;
-  min-height: 40px;
-  box-sizing: border-box;
+  padding: 0 0.75rem;
+  width: 7.5rem;
   appearance: none;
   -webkit-appearance: none;
 }
@@ -139,14 +147,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 40px;
-  min-height: 40px;
-  padding: 0 1.2rem;
+  padding: 0 1.25rem;
   border: none;
-  border-radius: 10px;
   font-weight: 700;
-  font-size: 0.875rem;
-  line-height: 1;
   cursor: pointer;
   flex-shrink: 0;
   color: #1e3a8a;
@@ -306,7 +309,8 @@
   }
 }
 
-@media (min-width: 1180px) {
+/* Sidebar aside, so 7-col only when content is actually wide enough */
+@media (min-width: 1480px) {
   .kpi-grid {
     grid-template-columns: repeat(7, minmax(0, 1fr));
   }
@@ -320,15 +324,15 @@
 .kpi-card {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.55rem;
   background: white;
   border: 1px solid var(--color-border);
   border-radius: 16px;
-  padding: 1.05rem 1.1rem 1.1rem;
+  padding: 1.1rem 1.15rem 1.15rem;
   box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
   transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
   min-width: 0;
-  min-height: 7.5rem;
+  min-height: 7.75rem;
   box-sizing: border-box;
   border-top: 3px solid #2563eb;
   text-decoration: none;
@@ -349,35 +353,34 @@
 }
 
 .kpi-card-top {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
+  display: grid;
+  grid-template-columns: 1.35rem minmax(0, 1fr);
+  align-items: start;
+  column-gap: 0.6rem;
   min-width: 0;
-  min-height: 1.5rem;
+  min-height: 2.5rem;
 }
 
 .kpi-icon {
-  width: 1.4rem;
-  height: 1.4rem;
+  width: 1.35rem;
+  height: 1.35rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 1.05rem;
   line-height: 1;
-  flex-shrink: 0;
 }
 
 .kpi-label {
-  flex: 1 1 auto;
   min-width: 0;
-  font-size: 0.65rem;
+  font-size: 0.64rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   color: #94a3b8;
-  line-height: 1.3;
+  line-height: 1.35;
   overflow-wrap: break-word;
-  word-break: break-word;
+  hyphens: auto;
 }
 
 .kpi-value {
@@ -386,7 +389,6 @@
   color: #1e293b;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  margin-top: 0.1rem;
 }
 
 .kpi-sub {
@@ -688,18 +690,18 @@
   .psikoplan-hero { align-items: stretch; }
   .analiz-month-filter {
     width: 100%;
-    justify-content: stretch;
   }
   .analiz-filter-field {
-    flex: 1 1 calc(50% - 0.4rem);
-    min-width: 0;
+    flex: 1 1 calc(50% - 0.5rem);
   }
   .analiz-month-filter select,
   .analiz-month-filter input {
     width: 100%;
   }
-  .analiz-filter-submit {
+  .analiz-filter-actions {
     flex: 1 1 100%;
+  }
+  .analiz-filter-submit {
     width: 100%;
   }
   .revenue-mini { grid-template-columns: 1fr; }

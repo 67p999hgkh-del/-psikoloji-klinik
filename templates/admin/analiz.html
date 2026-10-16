@@ -2,7 +2,7 @@
 {% block title %}PsikoPlan Analiz{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/analiz-ops.css') }}?v={{ static_v|default('20261016analiz1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/analiz-ops.css') }}?v={{ static_v|default('20261016analiz3') }}">
 {% endblock %}
 
 {% block content %}
@@ -26,7 +26,10 @@
         <span class="analiz-filter-label">Yıl</span>
         <input type="number" name="year" value="{{ data.year }}" min="2020" max="2100" inputmode="numeric">
       </label>
-      <button type="submit" class="analiz-filter-submit">Göster</button>
+      <div class="analiz-filter-actions">
+        <span class="analiz-filter-label" aria-hidden="true">&nbsp;</span>
+        <button type="submit" class="analiz-filter-submit">Göster</button>
+      </div>
     </form>
   </header>
 
