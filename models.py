@@ -231,6 +231,8 @@ class Appointment(db.Model):
     appointment_date = db.Column(db.Date, nullable=False)
     appointment_time = db.Column(db.Time, nullable=False)
     session_type = db.Column(db.String(20), default="yuz_yuze")
+    visit_type = db.Column(db.String(30), default="")
+    duration_minutes = db.Column(db.Integer, default=50)
     notes = db.Column(db.Text, default="")
     status = db.Column(db.String(20), default="beklemede")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -245,6 +247,11 @@ class Appointment(db.Model):
     SESSION_LABELS = {
         "yuz_yuze": "Yüz Yüze",
         "online": "Online",
+    }
+
+    VISIT_LABELS = {
+        "ilk": "İlk Görüşme",
+        "kontrol": "Kontrol",
     }
 
 
