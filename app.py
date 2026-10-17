@@ -1738,37 +1738,92 @@ def admin_appointment_new():
     if is_therapist_view:
         therapists = [t for t in therapists if t.id == user.therapist_id]
 
+    from routes_extra import active_client_profiles
+
+    clients = active_client_profiles()
+    duration_options = (45, 50, 60)
     today = date.today()
     form = {
         "patient_name": "",
         "patient_email": "",
         "patient_phone": "",
+        "client_profile_id": None,
+        "client_search": "",
+        "client_pending": False,
         "therapist_id": user.therapist_id if is_therapist_view else None,
         "appointment_date": today.isoformat(),
         "appointment_time": "10:00",
         "session_type": "yuz_yuze",
+        "visit_type": "",
+        "duration_minutes": 50,
         "status": "beklemede",
         "notes": "",
     }
 
+    def _render_form():
+        clients_json = json.dumps(
+            [
+                {
+                    "id": c.id,
+                    "full_name": c.full_name,
+                    "email": c.email,
+                    "phone": c.phone or "",
+                    "pending": not bool(c.invite_accepted),
+                }
+                for c in clients
+            ],
+            ensure_ascii=False,
+        )
+        return render_template(
+            "admin/appointment_form.html",
+            form=form,
+            therapists=therapists,
+            clients=clients,
+            clients_json=clients_json,
+            duration_options=duration_options,
+            status_labels=Appointment.STATUS_LABELS,
+            session_labels=Appointment.SESSION_LABELS,
+            visit_labels=Appointment.VISIT_LABELS,
+            is_therapist_view=is_therapist_view,
+            today=today,
+            static_v=STATIC_VERSION,
+        )
+
     if request.method == "POST":
+        profile_id = request.form.get("client_profile_id", type=int)
+        form["client_profile_id"] = profile_id
         form["patient_name"] = (request.form.get("patient_name") or "").strip()
-        form["patient_email"] = (request.form.get("patient_email") or "").strip()
+        form["patient_email"] = (request.form.get("patient_email") or "").strip().lower()
         form["patient_phone"] = (request.form.get("patient_phone") or "").strip()
         form["appointment_date"] = (request.form.get("appointment_date") or "").strip()
         form["appointment_time"] = (request.form.get("appointment_time") or "").strip()
         form["session_type"] = (request.form.get("session_type") or "yuz_yuze").strip()
+        form["visit_type"] = (request.form.get("visit_type") or "").strip()
         form["status"] = (request.form.get("status") or "beklemede").strip()
         form["notes"] = (request.form.get("notes") or "").strip()
+        form["duration_minutes"] = request.form.get("duration_minutes", type=int) or 50
         therapist_id = request.form.get("therapist_id", type=int)
         if is_therapist_view:
             therapist_id = user.therapist_id
         form["therapist_id"] = therapist_id
 
+        profile = ClientProfile.query.get(profile_id) if profile_id else None
+        if profile:
+            form["patient_name"] = profile.full_name
+            form["patient_email"] = (profile.email or "").lower()
+            if not form["patient_phone"] and profile.phone:
+                form["patient_phone"] = profile.phone
+            form["client_pending"] = not bool(profile.invite_accepted)
+            form["client_search"] = profile.email or ""
+
         if form["session_type"] not in Appointment.SESSION_LABELS:
             form["session_type"] = "yuz_yuze"
+        if form["visit_type"] not in Appointment.VISIT_LABELS:
+            form["visit_type"] = ""
         if form["status"] not in Appointment.STATUS_LABELS or form["status"] == "tamamlandi":
             form["status"] = "beklemede"
+        if form["duration_minutes"] not in duration_options:
+            form["duration_minutes"] = 50
 
         missing = not all(
             [
@@ -1781,96 +1836,97 @@ def admin_appointment_new():
             ]
         )
         if missing:
-            flash("Lütfen zorunlu alanları doldurun.", "error")
-        else:
-            therapist = Therapist.query.get(therapist_id)
-            if not therapist:
-                flash("Terapist bulunamadı.", "error")
-            elif form["session_type"] == "online" and not getattr(therapist, "supports_online", True):
-                flash(t("flash.online_unavailable"), "error")
-            else:
+            flash("Zorunlu alanlar: danışan (ad + e-posta + telefon), terapist, tarih ve saat.", "error")
+            return _render_form()
+
+        therapist = Therapist.query.get(therapist_id)
+        if not therapist:
+            flash("Terapist bulunamadı.", "error")
+            return _render_form()
+        if form["session_type"] == "online" and not getattr(therapist, "supports_online", True):
+            flash(t("flash.online_unavailable"), "error")
+            return _render_form()
+
+        try:
+            appt_date = datetime.strptime(form["appointment_date"], "%Y-%m-%d").date()
+            time_raw = (form["appointment_time"] or "").strip()
+            appt_time = None
+            for fmt in ("%H:%M", "%H:%M:%S", "%I:%M %p", "%I:%M:%S %p"):
                 try:
-                    appt_date = datetime.strptime(form["appointment_date"], "%Y-%m-%d").date()
-                    time_raw = (form["appointment_time"] or "").strip()
-                    appt_time = None
-                    for fmt in ("%H:%M", "%H:%M:%S", "%I:%M %p", "%I:%M:%S %p"):
-                        try:
-                            appt_time = datetime.strptime(time_raw, fmt).time()
-                            break
-                        except ValueError:
-                            continue
-                    if appt_time is None:
-                        appt_time = parse_time_slot(time_raw)
-                except (ValueError, TypeError):
-                    flash(t("flash.invalid_datetime"), "error")
-                    appt_date = appt_time = None
+                    appt_time = datetime.strptime(time_raw, fmt).time()
+                    break
+                except ValueError:
+                    continue
+            if appt_time is None:
+                appt_time = parse_time_slot(time_raw)
+        except (ValueError, TypeError):
+            flash(t("flash.invalid_datetime"), "error")
+            return _render_form()
 
-                if appt_date and appt_time:
-                    conflict = (
-                        Appointment.query.filter(
-                            Appointment.therapist_id == therapist.id,
-                            Appointment.appointment_date == appt_date,
-                            Appointment.appointment_time == appt_time,
-                            Appointment.status.in_(("onaylandi", "beklemede")),
-                        ).first()
-                    )
-                    if conflict:
-                        flash(t("flash.appointment_conflict"), "error")
-                    else:
-                        appointment = Appointment(
-                            therapist_id=therapist.id,
-                            patient_name=form["patient_name"],
-                            patient_email=form["patient_email"],
-                            patient_phone=form["patient_phone"],
-                            appointment_date=appt_date,
-                            appointment_time=appt_time,
-                            session_type=form["session_type"],
-                            notes=form["notes"],
-                            status=form["status"],
-                        )
-                        db.session.add(appointment)
-                        db.session.flush()
-                        profile, _created = ensure_client_invite(
-                            form["patient_name"], form["patient_email"], form["patient_phone"]
-                        )
-                        log_audit(
-                            user,
-                            "create",
-                            "appointment",
-                            appointment.id,
-                            {"patient": appointment.patient_name, "status": appointment.status},
-                        )
-                        db.session.commit()
+        conflict = (
+            Appointment.query.filter(
+                Appointment.therapist_id == therapist.id,
+                Appointment.appointment_date == appt_date,
+                Appointment.appointment_time == appt_time,
+                Appointment.status.in_(("onaylandi", "beklemede")),
+            ).first()
+        )
+        if conflict:
+            flash(t("flash.appointment_conflict"), "error")
+            return _render_form()
 
-                        invite_url = None
-                        if profile and getattr(profile, "invite_token", None):
-                            invite_url = url_for(
-                                "client_set_password", token=profile.invite_token, _external=True
-                            )
-                        settings = get_site_settings()
-                        try:
-                            notify_appointment_created(
-                                settings, appointment, therapist, settings.site_name, invite_url=invite_url
-                            )
-                        except Exception:
-                            pass
+        appointment = Appointment(
+            therapist_id=therapist.id,
+            patient_name=form["patient_name"],
+            patient_email=form["patient_email"],
+            patient_phone=form["patient_phone"],
+            appointment_date=appt_date,
+            appointment_time=appt_time,
+            session_type=form["session_type"],
+            visit_type=form["visit_type"],
+            duration_minutes=form["duration_minutes"],
+            notes=form["notes"],
+            status=form["status"],
+        )
+        db.session.add(appointment)
+        db.session.flush()
+        profile, _created = ensure_client_invite(
+            form["patient_name"], form["patient_email"], form["patient_phone"]
+        )
+        log_audit(
+            user,
+            "create",
+            "appointment",
+            appointment.id,
+            {
+                "patient": appointment.patient_name,
+                "status": appointment.status,
+                "duration": appointment.duration_minutes,
+                "visit_type": appointment.visit_type,
+            },
+        )
+        db.session.commit()
 
-                        flash(
-                            f"Randevu kaydedildi: {appointment.patient_name} · "
-                            f"{appt_date.strftime('%d.%m.%Y')} {appt_time.strftime('%H:%M')}",
-                            "success",
-                        )
-                        return redirect(url_for("admin_appointments", q=appointment.patient_email))
+        invite_url = None
+        if profile and getattr(profile, "invite_token", None):
+            invite_url = url_for("client_set_password", token=profile.invite_token, _external=True)
+        settings = get_site_settings()
+        try:
+            notify_appointment_created(
+                settings, appointment, therapist, settings.site_name, invite_url=invite_url
+            )
+        except Exception:
+            pass
 
-    return render_template(
-        "admin/appointment_form.html",
-        form=form,
-        therapists=therapists,
-        status_labels=Appointment.STATUS_LABELS,
-        session_labels=Appointment.SESSION_LABELS,
-        is_therapist_view=is_therapist_view,
-        today=today,
-    )
+        flash(
+            f"Randevu kaydedildi: {appointment.patient_name} · "
+            f"{appt_date.strftime('%d.%m.%Y')} {appt_time.strftime('%H:%M')} · "
+            f"{form['duration_minutes']} dk",
+            "success",
+        )
+        return redirect(url_for("admin_appointments", q=appointment.patient_email))
+
+    return _render_form()
 
 
 @app.route("/admin/randevu/<int:id>/durum", methods=["POST"])

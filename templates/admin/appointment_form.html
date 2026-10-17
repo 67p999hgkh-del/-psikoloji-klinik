@@ -2,95 +2,155 @@
 
 {% block title %}Yeni Randevu{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/appointment-form.css') }}?v={{ static_v|default('20261017apf') }}">
+{% endblock %}
+
 {% block content %}
-<div class="admin-page">
+<div class="admin-page apf-page">
   <div class="admin-header">
     <div>
       <h1>Yeni Randevu</h1>
       <p class="muted">Danışan için tarih ve saat planlayın. Seans klinik kaydı ayrı açılır.</p>
     </div>
     <div class="admin-header-actions">
-      <a href="{{ url_for('admin_appointments') }}" class="btn btn-ghost btn-sm">İptal</a>
+      <a href="{{ url_for('admin_appointments') }}" class="btn btn-ghost btn-sm">Vazgeç</a>
     </div>
   </div>
 
-  <form method="post" class="admin-card admin-form" id="apptCreateForm">
-    <div class="admin-card-header">
-      <h2>Danışan</h2>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label for="patient_name">Ad soyad</label>
-        <input type="text" id="patient_name" name="patient_name" value="{{ form.patient_name }}" required autocomplete="name">
-      </div>
-      <div class="form-group">
-        <label for="patient_email">E-posta</label>
-        <input type="email" id="patient_email" name="patient_email" value="{{ form.patient_email }}" required autocomplete="email">
-      </div>
-      <div class="form-group">
-        <label for="patient_phone">Telefon</label>
-        <input type="tel" id="patient_phone" name="patient_phone" value="{{ form.patient_phone }}" required autocomplete="tel">
-      </div>
-    </div>
+  <form method="post" class="admin-card admin-form apf-card" id="apptCreateForm" novalidate>
+    <p class="apf-banner">Kayıtlı üyeyi seçebilir veya walk-in için bilgileri elle girebilirsiniz. Seans notu / klinik kayıt bu formdan açılmaz.</p>
 
-    <div class="admin-card-header" style="margin-top:1.25rem">
-      <h2>Plan</h2>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label for="therapist_id">Terapist{% if not is_therapist_view %} / şube{% endif %}</label>
-        <select id="therapist_id" name="therapist_id" required {% if is_therapist_view %}disabled{% endif %}>
-          {% if not is_therapist_view %}<option value="">Seçin</option>{% endif %}
-          {% for t in therapists %}
-            <option value="{{ t.id }}"
-              {% if form.therapist_id == t.id %}selected{% endif %}
-              data-city="{{ t.city or '' }}">
-              {{ t.name }}{% if t.city %} · {{ t.city }}{% endif %}
-            </option>
-          {% endfor %}
-        </select>
-        {% if is_therapist_view %}
-          <input type="hidden" name="therapist_id" value="{{ form.therapist_id }}">
-        {% endif %}
+    <section class="apf-section" aria-labelledby="apfClientHead">
+      <div class="apf-section-head">
+        <h2 id="apfClientHead">Danışan</h2>
+        <span>Üye seç veya yeni gir</span>
       </div>
-      <div class="form-group">
-        <label for="appointment_date">Tarih</label>
-        <input type="date" id="appointment_date" name="appointment_date" value="{{ form.appointment_date }}" required>
-      </div>
-      <div class="form-group">
-        <label for="appointment_time">Saat</label>
-        <input type="time" id="appointment_time" name="appointment_time" value="{{ form.appointment_time }}" required>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label for="session_type">Tür</label>
-        <select id="session_type" name="session_type">
-          {% for key, label in session_labels.items() %}
-            <option value="{{ key }}" {% if form.session_type == key %}selected{% endif %}>{{ label }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="status">Durum</label>
-        <select id="status" name="status">
-          {% for key, label in status_labels.items() %}
-            {% if key != 'tamamlandi' %}
-              <option value="{{ key }}" {% if form.status == key %}selected{% endif %}>{{ label }}</option>
-            {% endif %}
-          {% endfor %}
-        </select>
-      </div>
-    </div>
-    <div class="form-group">
-      <label for="notes">Not</label>
-      <textarea id="notes" name="notes" rows="3" placeholder="Opsiyonel — iç not veya danışan talebi">{{ form.notes }}</textarea>
-    </div>
 
-    <div class="form-actions" style="display:flex;gap:0.5rem;margin-top:1rem">
+      <div class="apf-grid">
+        <div class="apf-field apf-span-3">
+          <label for="clientSearch">Kayıtlı danışan ara</label>
+          <input type="search" id="clientSearch" placeholder="Ad veya e-posta yazın / listeden seçin" autocomplete="off" list="clientOptions" value="{{ form.client_search }}">
+          <datalist id="clientOptions">
+            {% for c in clients %}
+              <option value="{{ c.email }}" label="{{ c.full_name }}{% if c.phone %} · {{ c.phone }}{% endif %}"></option>
+            {% endfor %}
+          </datalist>
+          <p class="apf-hint">Listeden seçince ad, e-posta ve telefon otomatik dolar. Walk-in için aramayı boş bırakıp alanları doldurun.</p>
+        </div>
+
+        <div class="apf-span-3" id="apfClientChip" {% if not form.client_profile_id %}hidden{% endif %}>
+          <div class="apf-chip">
+            <div class="apf-chip-main">
+              <strong id="apfChipName">{{ form.patient_name }}</strong>
+              <span id="apfChipEmail">{{ form.patient_email }}{% if form.patient_phone %} · {{ form.patient_phone }}{% endif %}</span>
+            </div>
+            <span class="apf-chip-badge" id="apfChipPending" {% if not form.client_pending %}hidden{% endif %}>Şifre bekliyor</span>
+            <button type="button" class="btn btn-xs btn-ghost" id="apfClearClient" aria-label="Danışanı temizle">Temizle</button>
+          </div>
+        </div>
+
+        <input type="hidden" name="client_profile_id" id="clientProfileId" value="{{ form.client_profile_id or '' }}">
+
+        <div class="apf-field" id="apfNameField">
+          <label for="patient_name">Ad soyad<span class="apf-req" title="Zorunlu">*</span></label>
+          <input type="text" id="patient_name" name="patient_name" value="{{ form.patient_name }}" required autocomplete="name" {% if form.client_profile_id %}readonly{% endif %}>
+        </div>
+        <div class="apf-field" id="apfEmailField">
+          <label for="patient_email">E-posta<span class="apf-req" title="Zorunlu">*</span></label>
+          <input type="email" id="patient_email" name="patient_email" value="{{ form.patient_email }}" required autocomplete="email" {% if form.client_profile_id %}readonly{% endif %}>
+        </div>
+        <div class="apf-field" id="apfPhoneField">
+          <label for="patient_phone">Telefon<span class="apf-req" title="Zorunlu">*</span></label>
+          <input type="tel" id="patient_phone" name="patient_phone" value="{{ form.patient_phone }}" required autocomplete="tel">
+        </div>
+      </div>
+    </section>
+
+    <section class="apf-section" aria-labelledby="apfPlanHead">
+      <div class="apf-section-head">
+        <h2 id="apfPlanHead">Plan</h2>
+        <span>Tarih · saat · terapist</span>
+      </div>
+
+      <div class="apf-grid">
+        <div class="apf-field">
+          <label for="therapist_id">Terapist{% if not is_therapist_view %} / şube{% endif %}<span class="apf-req" title="Zorunlu">*</span></label>
+          <select id="therapist_id" name="therapist_id" required {% if is_therapist_view %}disabled{% endif %}>
+            {% if not is_therapist_view %}<option value="">Seçin</option>{% endif %}
+            {% for t in therapists %}
+              <option value="{{ t.id }}"
+                {% if form.therapist_id == t.id %}selected{% endif %}
+                data-city="{{ t.city or '' }}">
+                {{ t.name }}{% if t.city %} · {{ t.city }}{% endif %}
+              </option>
+            {% endfor %}
+          </select>
+          {% if is_therapist_view %}
+            <input type="hidden" name="therapist_id" value="{{ form.therapist_id }}">
+          {% endif %}
+        </div>
+        <div class="apf-field">
+          <label for="appointment_date">Tarih<span class="apf-req" title="Zorunlu">*</span></label>
+          <input type="date" id="appointment_date" name="appointment_date" value="{{ form.appointment_date }}" required>
+        </div>
+        <div class="apf-field">
+          <label for="appointment_time">Saat<span class="apf-req" title="Zorunlu">*</span></label>
+          <input type="time" id="appointment_time" name="appointment_time" value="{{ form.appointment_time }}" required step="300">
+        </div>
+
+        <div class="apf-field">
+          <label for="duration_minutes">Süre</label>
+          <select id="duration_minutes" name="duration_minutes">
+            {% for mins in duration_options %}
+              <option value="{{ mins }}" {% if form.duration_minutes == mins %}selected{% endif %}>{{ mins }} dk</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="apf-field">
+          <label for="session_type">Seans ortamı</label>
+          <select id="session_type" name="session_type">
+            {% for key, label in session_labels.items() %}
+              <option value="{{ key }}" {% if form.session_type == key %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="apf-field">
+          <label for="visit_type">Görüşme türü</label>
+          <select id="visit_type" name="visit_type">
+            <option value="">Belirtilmedi</option>
+            {% for key, label in visit_labels.items() %}
+              <option value="{{ key }}" {% if form.visit_type == key %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="apf-field">
+          <label for="status">Durum</label>
+          <select id="status" name="status">
+            {% for key, label in status_labels.items() %}
+              {% if key != 'tamamlandi' %}
+                <option value="{{ key }}" {% if form.status == key %}selected{% endif %}>{{ label }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+        <div class="apf-field apf-span-2">
+          <label for="notes">Not</label>
+          <textarea id="notes" name="notes" rows="3" placeholder="Opsiyonel — iç not veya danışan talebi">{{ form.notes }}</textarea>
+        </div>
+      </div>
+    </section>
+
+    <div class="apf-actions">
       <button type="submit" class="btn btn-primary">Randevu kaydet</button>
       <a href="{{ url_for('admin_appointments') }}" class="btn btn-ghost">Vazgeç</a>
     </div>
   </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script type="application/json" id="apfClientsData">{{ clients_json|safe }}</script>
+<script src="{{ url_for('static', filename='js/appointment-form.js') }}?v={{ static_v|default('20261017apf') }}"></script>
 {% endblock %}

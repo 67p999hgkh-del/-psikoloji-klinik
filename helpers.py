@@ -247,5 +247,7 @@ def migrate_schema():
     _add_column_if_missing("client_profile", "invite_sent_at", "DATETIME")
     _add_column_if_missing("client_profile", "gender", "VARCHAR(20) DEFAULT ''")
     _add_column_if_missing("client_profile", "birth_date", "DATE")
+    _add_column_if_missing("appointment", "duration_minutes", "INTEGER DEFAULT 50")
+    _add_column_if_missing("appointment", "visit_type", "VARCHAR(30) DEFAULT ''")
     _migrate_admin_to_user()
     db.session.commit()
