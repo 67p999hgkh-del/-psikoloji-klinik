@@ -75,7 +75,7 @@ _default_db = "sqlite:///" + os.path.join(INSTANCE_DIR, "klinik.db")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", _default_db)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 86400
-STATIC_VERSION = "20260806s"
+STATIC_VERSION = "20261017schedule1"
 
 db.init_app(app)
 
@@ -1642,14 +1642,31 @@ def admin_slider_delete(id):
 @app.route("/admin/randevular")
 @permission_required("appointments")
 def admin_appointments():
+    from appointment_schedule import (
+        appointment_create_href,
+        build_day_schedule,
+        build_week_schedule,
+        parse_schedule_date,
+        schedule_nav_args,
+        week_monday,
+    )
+
     user = get_current_user()
+    today = date.today()
     status_filter = request.args.get("status", "")
     therapist_filter = request.args.get("therapist_id", type=int)
     search = (request.args.get("q") or "").strip()
     date_from = (request.args.get("from") or "").strip()
     date_to = (request.args.get("to") or "").strip()
+    view_mode = (request.args.get("view") or "list").strip() or "list"
+    if view_mode not in ("list", "calendar", "daily"):
+        view_mode = "list"
     page = max(request.args.get("page", 1, type=int), 1)
     per_page = 25
+    cal_anchor = parse_schedule_date(request.args.get("cal"), today)
+    day_anchor = parse_schedule_date(request.args.get("day"), today)
+    week_start = week_monday(cal_anchor)
+    is_therapist_view = user.role == "therapist"
 
     scope = Appointment.query
     if user.role == "therapist" and user.therapist_id:
@@ -1706,7 +1723,33 @@ def admin_appointments():
             for p in ClientProfile.query.filter(ClientProfile.email.in_(emails)).all()
         }
 
+    # Schedule uses therapist-scoped set (status filter still applied for consistency)
+    sched_scope = Appointment.query
+    if user.role == "therapist" and user.therapist_id:
+        sched_scope = sched_scope.filter_by(therapist_id=user.therapist_id)
+    elif therapist_filter:
+        sched_scope = sched_scope.filter_by(therapist_id=therapist_filter)
+    if status_filter:
+        sched_scope = sched_scope.filter_by(status=status_filter)
+    sched_appts = sched_scope.all()
+    schedule_week = build_week_schedule(sched_appts, week_start, today)
+    schedule_day = build_day_schedule(sched_appts, day_anchor, today)
+
+    def _nav(view, cal=None, day=None):
+        return schedule_nav_args(
+            view=view,
+            cal=cal,
+            day=day,
+            status=status_filter,
+            q=search,
+            date_from=date_from,
+            date_to=date_to,
+            therapist_id=therapist_filter,
+            is_therapist_view=is_therapist_view,
+        )
+
     therapists = Therapist.query.order_by(Therapist.name).all()
+    has_appointment_create = "admin_appointment_new" in app.view_functions
     return render_template(
         "admin/appointments.html",
         appointments=appointments,
@@ -1723,9 +1766,19 @@ def admin_appointments():
         pages=pages,
         per_page=per_page,
         member_emails=member_emails,
-        today=date.today(),
+        today=today,
         status_labels=Appointment.STATUS_LABELS,
-        is_therapist_view=user.role == "therapist",
+        session_type_labels=Appointment.SESSION_LABELS,
+        is_therapist_view=is_therapist_view,
+        view_mode=view_mode,
+        schedule_week=schedule_week,
+        schedule_day=schedule_day,
+        cal_anchor=week_start,
+        day_anchor=day_anchor,
+        schedule_nav=_nav,
+        appointment_create_href=appointment_create_href,
+        has_appointment_create=has_appointment_create,
+        static_v=STATIC_VERSION,
     )
 
 

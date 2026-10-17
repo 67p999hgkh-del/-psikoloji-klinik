@@ -3,17 +3,27 @@
 {% block title %}Randevular{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/appointment-ops-crm.css') }}?v={{ static_v|default('20260806r') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/appointment-ops-crm.css') }}?v={{ static_v|default('20261017schedule1') }}">
 {% endblock %}
 
 {% block content %}
-<div class="admin-page">
-  <div class="admin-header">
-    <div>
+{% set list_params = {
+  'status': status_filter or none,
+  'q': search or none,
+  'from': date_from or none,
+  'to': date_to or none,
+  'therapist_id': therapist_filter if not is_therapist_view else none
+} %}
+<div class="admin-page aoc-page">
+  <div class="admin-header aoc-header aoc-header-minimal">
+    <div class="aoc-header-main">
       <h1>Randevular</h1>
-      <p>{{ total }} kayıt listeleniyor{% if total_all != total %} · toplam {{ total_all }}{% endif %}</p>
+      <p class="aoc-sub">{{ total }} kayıt listeleniyor{% if total_all != total %} · toplam {{ total_all }}{% endif %}</p>
     </div>
-    <div class="admin-header-actions">
+    <div class="admin-header-actions aoc-header-actions">
+      {% if has_appointment_create %}
+        <a href="{{ url_for('admin_appointment_new') }}" class="btn btn-primary btn-sm">+ Yeni Randevu</a>
+      {% endif %}
       <a href="{{ url_for('admin_session_new') }}" class="btn btn-outline btn-sm">Seans kaydı aç</a>
     </div>
   </div>
@@ -25,13 +35,13 @@
     'iptal': 'violet'
   } %}
   <div class="raptor-kpi-strip" role="navigation" aria-label="Randevu özeti">
-    <a href="{{ url_for('admin_appointments', q=search, from=date_from, to=date_to, therapist_id=therapist_filter if not is_therapist_view else None) }}"
+    <a href="{{ url_for('admin_appointments', q=search, from=date_from, to=date_to, therapist_id=therapist_filter if not is_therapist_view else None, view=view_mode if view_mode != 'list' else None) }}"
        class="raptor-pill raptor-pill-blue {% if not status_filter %}is-active{% endif %}">
       <span class="raptor-pill-value">{{ total_all }}</span>
       <span class="raptor-pill-label">Tümü</span>
     </a>
     {% for key, label in status_labels.items() %}
-      <a href="{{ url_for('admin_appointments', status=key, q=search, from=date_from, to=date_to, therapist_id=therapist_filter if not is_therapist_view else None) }}"
+      <a href="{{ url_for('admin_appointments', status=key, q=search, from=date_from, to=date_to, therapist_id=therapist_filter if not is_therapist_view else None, view=view_mode if view_mode != 'list' else None) }}"
          class="raptor-pill raptor-pill-{{ pill_tone.get(key, 'blue') }} {% if status_filter == key %}is-active{% endif %}">
         <span class="raptor-pill-value">{{ status_counts.get(key, 0) }}</span>
         <span class="raptor-pill-label">{{ label }}</span>
@@ -41,6 +51,9 @@
 
   <form method="GET" class="filter-bar">
     {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+    {% if view_mode != 'list' %}<input type="hidden" name="view" value="{{ view_mode }}">{% endif %}
+    {% if cal_anchor %}<input type="hidden" name="cal" value="{{ cal_anchor.isoformat() }}">{% endif %}
+    {% if day_anchor %}<input type="hidden" name="day" value="{{ day_anchor.isoformat() }}">{% endif %}
     <div class="filter-field filter-grow">
       <label for="q">Ara</label>
       <input type="search" id="q" name="q" value="{{ search }}" placeholder="Ad, e-posta veya telefon">
@@ -70,6 +83,16 @@
     </div>
   </form>
 
+  <div class="aoc-view-tabs aoc-view-tabs-minimal" role="tablist" aria-label="Görünüm modları">
+    <a href="{{ url_for('admin_appointments', status=status_filter or None, q=search or None, **{'from': date_from or None, 'to': date_to or None, 'therapist_id': therapist_filter if not is_therapist_view else None}) }}"
+       class="aoc-tab{% if view_mode == 'list' %} is-active{% endif %}" role="tab">Liste</a>
+    <a href="{{ url_for('admin_appointments', **schedule_nav('calendar', cal=cal_anchor, day=day_anchor)) }}"
+       class="aoc-tab{% if view_mode == 'calendar' %} is-active{% endif %}" role="tab">Takvim</a>
+    <a href="{{ url_for('admin_appointments', **schedule_nav('daily', cal=cal_anchor, day=day_anchor)) }}"
+       class="aoc-tab{% if view_mode == 'daily' %} is-active{% endif %}" role="tab">Günlük</a>
+  </div>
+
+  {% if view_mode == 'list' %}
   <div class="admin-card">
     <div class="admin-card-header">
       <h2>
@@ -173,5 +196,99 @@
       </div>
     {% endif %}
   </div>
+  {% elif view_mode == 'calendar' %}
+  <div class="admin-card aoc-schedule-card">
+    <div class="aoc-schedule-toolbar">
+      <div class="aoc-schedule-toolbar-main">
+        <h2>Haftalık Program</h2>
+        <span class="muted">{{ schedule_week.title }} · {{ schedule_week.total }} randevu</span>
+      </div>
+      <nav class="aoc-schedule-nav" aria-label="Hafta gezintisi">
+        <a class="btn btn-sm btn-outline" href="{{ url_for('admin_appointments', **schedule_nav('calendar', cal=schedule_week.prev_start, day=day_anchor)) }}">← Önceki</a>
+        <a class="btn btn-sm btn-ghost" href="{{ url_for('admin_appointments', **schedule_nav('calendar', cal=today, day=today)) }}">Bu hafta</a>
+        <a class="btn btn-sm btn-outline" href="{{ url_for('admin_appointments', **schedule_nav('calendar', cal=schedule_week.next_start, day=day_anchor)) }}">Sonraki →</a>
+      </nav>
+    </div>
+    <div class="aoc-schedule-scroll" role="region" aria-label="Haftalık randevu grid">
+      <table class="aoc-schedule-grid">
+        <thead>
+          <tr>
+            <th class="aoc-schedule-time-col" scope="col"><span class="visually-hidden">Saat</span></th>
+            {% for day in schedule_week.days %}
+              <th scope="col" class="{% if day.is_today %}is-today{% endif %}">
+                <span class="aoc-schedule-dow">{{ day.label }}</span>
+                <strong class="aoc-schedule-dom">{{ day.date.strftime('%d.%m') }}</strong>
+                <a class="aoc-schedule-day-link" href="{{ url_for('admin_appointments', **schedule_nav('daily', cal=schedule_week.week_start, day=day.date)) }}">Günlük</a>
+              </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in schedule_week.hours %}
+            <tr>
+              <th scope="row" class="aoc-schedule-time-col">{{ row.label }}</th>
+              {% for cell in row.cells %}
+                <td class="aoc-schedule-cell{% if cell.is_today %} is-today{% endif %}{% if cell.appointments %} has-events{% endif %}">
+                  {% for a in cell.appointments %}
+                    <div class="aoc-schedule-event aoc-schedule-{{ a.status }}" title="{{ a.patient_name }} · {{ a.therapist_name }} · {{ status_labels.get(a.status, a.status) }}">
+                      <time>{{ a.time }}</time>
+                      <strong>{{ a.patient_name }}</strong>
+                      <span class="aoc-schedule-meta">{{ a.therapist_name }}</span>
+                      <span class="badge-soft aoc-schedule-status">{{ status_labels.get(a.status, a.status) }}</span>
+                    </div>
+                  {% endfor %}
+                  <a class="aoc-schedule-add"
+                     href="{{ appointment_create_href(cell.iso, cell.create_time) }}"
+                     title="{{ cell.iso }} {{ cell.create_time }} — Yeni randevu">+</a>
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="admin-card aoc-schedule-card">
+    <div class="aoc-schedule-toolbar">
+      <div class="aoc-schedule-toolbar-main">
+        <h2>Günlük Program</h2>
+        <span class="muted">{{ schedule_day.weekday }} · {{ schedule_day.title }} · {{ schedule_day.count }} randevu</span>
+      </div>
+      <nav class="aoc-schedule-nav" aria-label="Gün gezintisi">
+        <a class="btn btn-sm btn-outline" href="{{ url_for('admin_appointments', **schedule_nav('daily', cal=cal_anchor, day=schedule_day.prev)) }}">← Önceki</a>
+        <a class="btn btn-sm btn-ghost" href="{{ url_for('admin_appointments', **schedule_nav('daily', cal=today, day=today)) }}">Bugün</a>
+        <a class="btn btn-sm btn-outline" href="{{ url_for('admin_appointments', **schedule_nav('daily', cal=cal_anchor, day=schedule_day.next)) }}">Sonraki →</a>
+        <a class="btn btn-sm btn-outline" href="{{ url_for('admin_appointments', **schedule_nav('calendar', cal=schedule_day.date, day=schedule_day.date)) }}">Haftaya dön</a>
+      </nav>
+    </div>
+    <div class="aoc-day-schedule" role="list">
+      {% for slot in schedule_day.slots %}
+        <div class="aoc-day-slot{% if slot.appointments %} has-events{% endif %}" role="listitem">
+          <div class="aoc-day-slot-time">{{ slot.label }}</div>
+          <div class="aoc-day-slot-body">
+            {% for a in slot.appointments %}
+              <div class="aoc-schedule-event aoc-schedule-event-row aoc-schedule-{{ a.status }}">
+                <time>{{ a.time }}</time>
+                <strong>{{ a.patient_name }}</strong>
+                <span class="aoc-schedule-meta">{{ a.therapist_name }} · {{ session_type_labels.get(a.session_type, a.session_type) }}</span>
+                <span class="badge-soft aoc-schedule-status">{{ status_labels.get(a.status, a.status) }}</span>
+              </div>
+            {% else %}
+              <a class="aoc-day-slot-empty" href="{{ appointment_create_href(schedule_day.iso, slot.create_time) }}">
+                Boş — randevu oluştur
+              </a>
+            {% endfor %}
+            {% if slot.appointments %}
+              <a class="aoc-schedule-add aoc-schedule-add-inline"
+                 href="{{ appointment_create_href(schedule_day.iso, slot.create_time) }}"
+                 title="Aynı saate randevu ekle">+</a>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
