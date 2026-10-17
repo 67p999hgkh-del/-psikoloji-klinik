@@ -1482,6 +1482,8 @@
   .aoc-filter-range { grid-column: span 2; }
   .aoc-charts-row { grid-template-columns: 1fr; }
   .aoc-calendar-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .aoc-schedule-toolbar { flex-direction: column; align-items: stretch; }
+  .aoc-schedule-add { opacity: 1; }
 }
 
 @media (max-width: 600px) {
@@ -1502,3 +1504,311 @@
   .aoc-actions { display: none !important; }
   .aoc-table { min-width: 0; font-size: 0.7rem; }
 }
+
+/* Week / day schedule grids */
+.aoc-schedule-card {
+  padding: 1rem 1rem 0.75rem;
+}
+
+.aoc-schedule-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.aoc-schedule-toolbar-main h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.aoc-schedule-toolbar-main .muted {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+}
+
+.aoc-schedule-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.aoc-schedule-scroll {
+  overflow: auto;
+  max-height: min(70vh, 720px);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.aoc-schedule-grid {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.aoc-schedule-grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.55rem 0.35rem;
+  text-align: center;
+  font-weight: 600;
+  vertical-align: bottom;
+}
+
+.aoc-schedule-grid thead th.is-today {
+  background: #eff6ff;
+  box-shadow: inset 0 -2px 0 #3b82f6;
+}
+
+.aoc-schedule-dow {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.aoc-schedule-dom {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0.1rem 0;
+}
+
+.aoc-schedule-day-link {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.aoc-schedule-day-link:hover { text-decoration: underline; }
+
+.aoc-schedule-time-col {
+  width: 3.4rem;
+  min-width: 3.4rem;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #94a3b8;
+  text-align: center;
+  padding: 0.35rem 0.2rem;
+}
+
+.aoc-schedule-grid tbody th.aoc-schedule-time-col {
+  z-index: 1;
+}
+
+.aoc-schedule-grid tbody td {
+  height: 3.4rem;
+  vertical-align: top;
+  padding: 0.2rem;
+  border-bottom: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
+  background: #fff;
+}
+
+.aoc-schedule-cell.is-today {
+  background: #f8fbff;
+}
+
+.aoc-schedule-cell {
+  position: relative;
+}
+
+.aoc-schedule-cell:hover .aoc-schedule-add,
+.aoc-day-slot:hover .aoc-schedule-add {
+  opacity: 1;
+}
+
+.aoc-schedule-add {
+  position: absolute;
+  right: 0.2rem;
+  bottom: 0.15rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 6px;
+  border: 1px dashed #cbd5e1;
+  color: #64748b;
+  font-size: 0.85rem;
+  line-height: 1.15rem;
+  text-align: center;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.12s, background 0.12s, border-color 0.12s;
+}
+
+.aoc-schedule-add:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.aoc-schedule-add-inline {
+  position: static;
+  opacity: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.35rem;
+}
+
+.aoc-schedule-event {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.05rem;
+  width: 100%;
+  margin: 0 0 0.2rem;
+  padding: 0.28rem 0.4rem;
+  border: 1px solid #e2e8f0;
+  border-left: 3px solid #94a3b8;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.aoc-schedule-event:hover {
+  border-color: #93c5fd;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+}
+
+.aoc-schedule-event time {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.aoc-schedule-event strong {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aoc-schedule-meta {
+  font-size: 0.62rem;
+  color: #64748b;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aoc-schedule-status {
+  font-size: 0.58rem;
+  margin-top: 0.1rem;
+}
+
+.aoc-schedule-beklemede { border-left-color: #f59e0b; background: #fffbeb; }
+.aoc-schedule-onaylandi { border-left-color: #22c55e; background: #f0fdf4; }
+.aoc-schedule-tamamlandi { border-left-color: #3b82f6; background: #eff6ff; }
+.aoc-schedule-iptal { border-left-color: #f43f5e; background: #fff1f2; opacity: 0.75; }
+
+.aoc-schedule-event-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.55rem;
+  padding: 0.45rem 0.65rem;
+}
+
+.aoc-schedule-event-row strong { font-size: 0.82rem; white-space: normal; }
+.aoc-schedule-event-row time { font-size: 0.72rem; }
+
+.aoc-day-schedule {
+  display: grid;
+  gap: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.aoc-day-slot {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+  min-height: 3.2rem;
+  align-items: start;
+}
+
+.aoc-day-slot:last-child { border-bottom: 0; }
+
+.aoc-day-slot.has-events {
+  background: #fafbfd;
+}
+
+.aoc-day-slot-time {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #94a3b8;
+  padding-top: 0.45rem;
+}
+
+.aoc-day-slot-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.4rem;
+}
+
+.aoc-day-slot-empty {
+  display: block;
+  width: 100%;
+  padding: 0.45rem 0.65rem;
+  border: 1px dashed #e2e8f0;
+  border-radius: 10px;
+  color: #94a3b8;
+  font-size: 0.76rem;
+  text-decoration: none;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+
+.aoc-day-slot-empty:hover {
+  border-color: #93c5fd;
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
