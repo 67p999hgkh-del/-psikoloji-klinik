@@ -108,3 +108,19 @@ def notify_appointment_confirmed(settings, appointment, therapist, site_name):
         </ul>
         """
         send_email(settings, therapist.email, f"Onaylanmış Randevu — {appointment.patient_name}", therapist_html)
+
+
+def queue_session_bulk_notify(settings, record):
+    """Toplu seans listesinden danışana bilgilendirme e-postası (basit kuyruk/stub)."""
+    email = (record.patient_email or "").strip()
+    if not email:
+        return None
+    when = record.created_at.strftime("%d.%m.%Y %H:%M") if record.created_at else "—"
+    therapist_name = record.therapist.name if getattr(record, "therapist", None) else "Terapistiniz"
+    html = f"""
+    <h2>Seans Bilgilendirme</h2>
+    <p>Sayın {record.patient_name or email},</p>
+    <p>{therapist_name} ile seans kaydınız: <strong>{when}</strong>.</p>
+    """
+    sent = send_email(settings, email, "Seans bilgilendirme", html)
+    return True if sent or not (settings and getattr(settings, "email_enabled", False)) else None

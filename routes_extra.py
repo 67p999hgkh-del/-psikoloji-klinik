@@ -45,6 +45,24 @@ from psikoplan import (
     payment_status_map,
     sync_client_links,
 )
+from session_bulk_ops import perform_session_bulk
+from session_workspace import (
+    NOTE_TEMPLATES,
+    SESSION_HOMEWORK_FILTERS,
+    SESSION_LIST_STATUS_FILTERS,
+    THERAPY_APPROACHES,
+    WORKSPACE_STATUS_LABELS,
+    apply_session_filters,
+    build_active_filter_chips,
+    build_session_kpis,
+    build_session_rows,
+    build_workspace_payload,
+    count_advanced_filters,
+    detect_date_preset,
+    filter_rows_by_extra,
+    filter_sessions_by_kpi,
+    refine_session_list,
+)
 
 
 def active_client_profiles():
@@ -153,136 +171,123 @@ def register_extra_routes(app):
     def admin_sessions():
         user = get_current_user()
         base_scope = _session_scope(user)
-        scope = _apply_session_filters(base_scope, request.args)
+        scope, filters = apply_session_filters(base_scope, request.args)
+
+        all_filtered = scope.order_by(SessionRecord.created_at.desc()).all()
+        all_base = base_scope.all()
+        payments = payment_status_map({s.patient_email for s in all_filtered})
+
+        today = date.today()
+        kpis = build_session_kpis(all_filtered, all_base, today)
+
+        list_sessions = all_filtered
+        if filters.get("kpi"):
+            list_sessions = filter_sessions_by_kpi(all_filtered, filters["kpi"], today)
+        list_sessions = refine_session_list(list_sessions, filters, today)
+
+        rows = build_session_rows(list_sessions, all_base, payments)
+        rows = filter_rows_by_extra(rows, filters)
 
         page = max(request.args.get("page", 1, type=int), 1)
         per_page = 20
-        total = scope.count()
+        total = len(rows)
         pages = max((total + per_page - 1) // per_page, 1)
         page = min(page, pages)
-        sessions = (
-            scope.order_by(SessionRecord.created_at.desc())
-            .offset((page - 1) * per_page)
-            .limit(per_page)
-            .all()
-        )
+        paginated_rows = rows[(page - 1) * per_page : page * per_page]
 
-        payments = payment_status_map({s.patient_email for s in sessions})
-
-        today = date.today()
-        today_start = datetime.combine(today, datetime.min.time())
-        last30 = datetime.utcnow() - timedelta(days=30)
-        prev30 = datetime.utcnow() - timedelta(days=60)
-
-        all_sessions = base_scope.all()
-        recent = [s for s in all_sessions if s.created_at and s.created_at >= last30]
-        previous = [s for s in all_sessions if s.created_at and prev30 <= s.created_at < last30]
-
-        def delta(now_value, prev_value):
-            if not prev_value:
-                return 100 if now_value else 0
-            return round((now_value - prev_value) * 100 / prev_value)
-
-        today_sessions = [s for s in all_sessions if s.created_at and s.created_at >= today_start]
-        active_clients = {
-            (s.patient_email or "").lower()
-            for s in all_sessions
-            if s.status == "devam" and s.patient_email
-        }
-        prev_active = {
-            (s.patient_email or "").lower() for s in previous if s.patient_email
-        }
-        durations = [s.duration_minutes or 0 for s in recent if s.duration_minutes]
-        prev_durations = [s.duration_minutes or 0 for s in previous if s.duration_minutes]
-        avg_duration = round(sum(durations) / len(durations)) if durations else 0
-        prev_avg = round(sum(prev_durations) / len(prev_durations)) if prev_durations else 0
-
-        invoice_scope = Invoice.query
-        if user.role == "therapist" and user.therapist_id:
-            invoice_scope = invoice_scope.filter_by(therapist_id=user.therapist_id)
-        pending_invoices = invoice_scope.filter(Invoice.status == "bekliyor").all()
-        pending_amount = sum(i.amount or 0 for i in pending_invoices)
-        prev_pending = sum(
-            i.amount or 0
-            for i in pending_invoices
-            if i.invoice_date and i.invoice_date < (today - timedelta(days=30))
-        )
-
-        stat_cards = [
+        filter_chips = build_active_filter_chips(filters, WORKSPACE_STATUS_LABELS, PAYMENT_LABELS)
+        query_args = {k: v for k, v in filters.items() if v}
+        filter_chip_links = [
             {
-                "icon": "🗂️",
-                "label": "Toplam Seans",
-                "value": len(all_sessions),
-                "delta": delta(len(recent), len(previous)),
-                "hint": "son 30 gün",
-            },
-            {
-                "icon": "📆",
-                "label": "Bugünkü Seans",
-                "value": len(today_sessions),
-                "delta": None,
-                "hint": today.strftime("%d.%m.%Y"),
-            },
-            {
-                "icon": "👥",
-                "label": "Aktif Danışan",
-                "value": len(active_clients),
-                "delta": delta(len(active_clients), len(prev_active)),
-                "hint": "devam eden süreç",
-            },
-            {
-                "icon": "💳",
-                "label": "Bekleyen Ödeme",
-                "value": f"{pending_amount:,.0f} ₺".replace(",", "."),
-                "delta": delta(pending_amount, prev_pending),
-                "hint": f"{len(pending_invoices)} fatura",
-                "invert": True,
-            },
-            {
-                "icon": "⏱️",
-                "label": "Ort. Seans Süresi",
-                "value": f"{avg_duration} dk",
-                "delta": delta(avg_duration, prev_avg),
-                "hint": "son 30 gün",
-            },
+                **chip,
+                "href_args": {k: v for k, v in query_args.items() if k != chip.get("key")},
+            }
+            for chip in filter_chips
         ]
-
         therapists = Therapist.query.order_by(Therapist.name).all()
         cities = sorted(
             {t.city for t in therapists if t.city}
-            | {s.city for s in all_sessions if s.city}
+            | {s.city for s in all_base if s.city}
         )
-
-        active_filters = {
-            "q": (request.args.get("q") or "").strip(),
-            "therapist_id": request.args.get("therapist_id", type=int),
-            "city": (request.args.get("city") or "").strip(),
-            "reason": (request.args.get("reason") or "").strip(),
-            "status": (request.args.get("status") or "").strip(),
-            "session_type": (request.args.get("session_type") or "").strip(),
-            "from": (request.args.get("from") or "").strip(),
-            "to": (request.args.get("to") or "").strip(),
-        }
+        has_advanced = bool(
+            filters.get("reason")
+            or filters.get("visit_type")
+            or filters.get("note_status")
+            or filters.get("payment")
+            or filters.get("session_type")
+            or filters.get("city")
+            or filters.get("approach")
+            or (filters.get("therapist_id") and user.role != "therapist")
+        )
+        date_preset = detect_date_preset(filters.get("from"), filters.get("to"), today)
+        advanced_filter_count = count_advanced_filters(filters, user.role == "therapist")
 
         return render_template(
             "admin/sessions.html",
-            sessions=sessions,
+            rows=paginated_rows,
+            kpis=kpis,
+            filter_chips=filter_chips,
+            filter_chip_links=filter_chip_links,
             payments=payments,
             payment_labels=PAYMENT_LABELS,
-            stat_cards=stat_cards,
             therapists=therapists,
             cities=cities,
             reasons=APPLICATION_REASONS,
+            approaches=THERAPY_APPROACHES,
             status_labels=SessionRecord.STATUS_LABELS,
+            workspace_status_labels=WORKSPACE_STATUS_LABELS,
+            list_status_filters=SESSION_LIST_STATUS_FILTERS,
+            homework_filters=SESSION_HOMEWORK_FILTERS,
             risk_labels=SessionRecord.RISK_LABELS,
             type_labels=SessionRecord.SESSION_LABELS,
-            filters=active_filters,
-            query_args={k: v for k, v in active_filters.items() if v},
+            note_templates=NOTE_TEMPLATES,
+            filters=filters,
+            query_args=query_args,
+            has_advanced=has_advanced,
+            advanced_filter_count=advanced_filter_count,
+            date_preset=date_preset,
             total=total,
             page=page,
             pages=pages,
             is_therapist_view=user.role == "therapist",
+            user_role=user.role,
+            open_session=request.args.get("open", type=int),
         )
+
+    @app.route("/admin/seanslar/bulk", methods=["POST"])
+    @permission_required("sessions")
+    def admin_sessions_bulk():
+        from email_service import queue_session_bulk_notify
+        from app import get_site_settings
+
+        user = get_current_user()
+        settings = get_site_settings()
+        ids = request.form.getlist("ids")
+        action = (request.form.get("action") or "").strip()
+        data = {"new_therapist_id": request.form.get("new_therapist_id")}
+
+        _count, message, level = perform_session_bulk(
+            user,
+            ids,
+            action,
+            data,
+            settings=settings,
+            queue_email_fn=queue_session_bulk_notify,
+            log_audit_fn=log_audit,
+            db=db,
+            models=None,
+        )
+        flash(message, level if level in ("success", "warning", "error") else "info")
+        return redirect(url_for("admin_sessions"))
+
+    @app.route("/admin/seans/<int:record_id>/workspace")
+    @permission_required("sessions")
+    def admin_session_workspace(record_id):
+        user = get_current_user()
+        record = SessionRecord.query.get_or_404(record_id)
+        if user.role == "therapist" and user.therapist_id != record.therapist_id:
+            return jsonify({"error": "Bu kayda erişim yetkiniz yok."}), 403
+        return jsonify(build_workspace_payload(record, user))
 
     @app.route("/admin/seanslar/disa-aktar")
     @permission_required("sessions")
